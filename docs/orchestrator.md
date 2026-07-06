@@ -28,3 +28,12 @@ Format:
 - **Agent:** Orchestrator 🕴️
 - **Learning:** Stabilization is required. Detected and fixed critical function shadowing in `screenshot.py`. Refactored UI templates for better SOC.
 - **Status:** Phase 1 Complete.
+## 25-05-2024 - Core Philosophy Alignment
+- **Tags:** #orchestration #philosophy #portability
+- **Level:** 🟢 INFO
+- **Scope:** [docs/init/](file:///app/docs/init/)
+- **Notify Agents:** @All
+- **Symptom:** Instructions were generic and did not emphasize the user's core philosophy.
+- **Root Cause:** Initial instructions lacked the specific context of "Offline, Portable, Efficient, and 1-Click".
+- **Learning:** Agent instructions must be dynamically updated when the user specifies a core mission or philosophy to ensure all subsequent tasks are aligned.
+- **Action/Rule:** Always cross-reference user requests with the "Philosophical Routing Table" and update instruction files if a new overarching constraint is introduced.
