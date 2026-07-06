@@ -2,22 +2,32 @@ import os
 import sys
 import argparse
 
-parser = argparse.ArgumentParser(description="OpenRecall")
+def parse_args():
+    # Only parse args if running as main or if explicitly called
+    # Avoiding parse_args() during library import (e.g. by pytest)
+    parser = argparse.ArgumentParser(description="OpenRecall")
 
-parser.add_argument(
-    "--storage-path",
-    default=None,
-    help="Path to store the screenshots and database",
-)
+    parser.add_argument(
+        "--storage-path",
+        default=None,
+        help="Path to store the screenshots and database",
+    )
 
-parser.add_argument(
-    "--primary-monitor-only",
-    action="store_true",
-    help="Only record the primary monitor",
-    default=False,
-)
+    parser.add_argument(
+        "--primary-monitor-only",
+        action="store_true",
+        help="Only record the primary monitor",
+        default=False,
+    )
 
-args = parser.parse_args()
+    # If we are in pytest, ignore unknown args or don't parse
+    if "pytest" in sys.modules or "pytest" in sys.argv[0]:
+        args, _ = parser.parse_known_args()
+    else:
+        args = parser.parse_args()
+    return args
+
+args = parse_args()
 
 
 def get_appdata_folder(app_name="openrecall"):

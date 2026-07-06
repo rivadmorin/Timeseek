@@ -31,6 +31,19 @@ OpenRecall captures your digital history through regularly taken snapshots. The 
 - **Semantic Search**: Advanced local OCR search results in a modern M3 grid.
 - **Offline Assets**: No CDN dependencies.
 
+## Project Structure
+
+OpenRecall is organized into modular components for better maintainability:
+
+- **`openrecall/app.py`**: Main entry point, Flask web server, and UI routing.
+- **`openrecall/templates/`**: Jinja2 HTML templates for the web interface (`timeline.html`, `search.html`).
+- **`openrecall/config.py`**: Configuration management, argument parsing, and storage path setup.
+- **`openrecall/database.py`**: SQLite database schema and data persistence logic.
+- **`openrecall/nlp.py`**: Natural Language Processing for semantic search embeddings using cosine similarity.
+- **`openrecall/ocr.py`**: Optical Character Recognition (`doctr`) to extract text from captured images.
+- **`openrecall/screenshot.py`**: Background thread logic for capturing and storing periodic screenshots.
+- **`openrecall/utils.py`**: Helper functions for time conversion and formatting.
+
 ## Get Started
 
 ### Prerequisites
@@ -48,6 +61,43 @@ To run:
 python3 -m openrecall.app
 ```
 Open your browser to [http://localhost:8082](http://localhost:8082).
+
+## Arguments
+`--storage-path` (default: user data path for your OS): allows you to specify the path where the screenshots and database should be stored. We recommend [creating an encrypted volume](docs/encryption.md) to store your data.
+
+`--primary-monitor-only` (default: False): only record the primary monitor (rather than individual screenshots for other monitors)
+
+## Uninstall instructions
+
+To uninstall OpenRecall and remove all stored data:
+
+1. Uninstall the package:
+   ```
+   python3 -m pip uninstall openrecall
+   ```
+
+2. Remove stored data:
+   - On Windows:
+     ```
+     rmdir /s %APPDATA%\openrecall
+     ```
+   - On macOS:
+     ```
+     rm -rf ~/Library/Application\ Support/openrecall
+     ```
+   - On Linux:
+     ```
+     rm -rf ~/.local/share/openrecall
+     ```
+
+Note: If you specified a custom storage path at any time using the `--storage-path` argument, make sure to remove that directory too.
+
+## Contribute
+
+As an open-source project, we welcome contributions from the community. If you'd like to help improve OpenRecall, please submit a pull request or open an issue on our GitHub repository.
+
+## Contact the maintainers
+mail@datatalk.be
 
 ## License
 OpenRecall is released under the [AGPLv3](https://opensource.org/licenses/AGPL-3.0).
