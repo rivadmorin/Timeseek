@@ -6,15 +6,13 @@ from typing import Any, List, Optional, Tuple
 from openrecall.config import db_path
 
 # Define the structure of a database entry using namedtuple
-Entry = namedtuple("Entry", ["id", "app", "title", "text", "timestamp", "embedding"])
+Entry = namedtuple("Entry", ["id", "app", "title", "text", "timestamp", "embedding", "filename"])
 
 
 def create_db() -> None:
     """
     Creates the SQLite database and the 'entries' table if they don't exist.
-
-    The table schema includes columns for an auto-incrementing ID, application name,
-    window title, extracted text, timestamp, and text embedding.
+    Also handles schema migrations (adding 'filename' column).
     """
     try:
         with sqlite3.connect(db_path) as conn:
@@ -29,6 +27,13 @@ def create_db() -> None:
                        embedding BLOB
                    )"""
             )
+            # Migration: Add filename column if it doesn't exist
+            cursor.execute("PRAGMA table_info(entries)")
+            columns = [column[1] for column in cursor.fetchall()]
+            if "filename" not in columns:
+                print("Migrating database: Adding 'filename' column.")
+                cursor.execute("ALTER TABLE entries ADD COLUMN filename TEXT")
+
             # Add index on timestamp for faster lookups
             cursor.execute(
                 "CREATE INDEX IF NOT EXISTS idx_timestamp ON entries (timestamp)"
@@ -41,21 +46,16 @@ def create_db() -> None:
 def get_all_entries() -> List[Entry]:
     """
     Retrieves all entries from the database.
-
-    Returns:
-        List[Entry]: A list of all entries as Entry namedtuples.
-                     Returns an empty list if the table is empty or an error occurs.
     """
     entries: List[Entry] = []
     try:
         with sqlite3.connect(db_path) as conn:
-            conn.row_factory = sqlite3.Row  # Return rows as dictionary-like objects
+            conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
-            cursor.execute("SELECT id, app, title, text, timestamp, embedding FROM entries ORDER BY timestamp DESC")
+            cursor.execute("SELECT id, app, title, text, timestamp, embedding, filename FROM entries ORDER BY timestamp DESC")
             results = cursor.fetchall()
             for row in results:
-                # Deserialize the embedding blob back into a NumPy array
-                embedding = np.frombuffer(row["embedding"], dtype=np.float32) # Assuming float32, adjust if needed
+                embedding = np.frombuffer(row["embedding"], dtype=np.float32)
                 entries.append(
                     Entry(
                         id=row["id"],
@@ -64,6 +64,7 @@ def get_all_entries() -> List[Entry]:
                         text=row["text"],
                         timestamp=row["timestamp"],
                         embedding=embedding,
+                        filename=row["filename"],
                     )
                 )
     except sqlite3.Error as e:
@@ -71,63 +72,44 @@ def get_all_entries() -> List[Entry]:
     return entries
 
 
-def get_timestamps() -> List[int]:
+def get_timestamps() -> List[dict]:
     """
-    Retrieves all timestamps from the database, ordered descending.
-
-    Returns:
-        List[int]: A list of all timestamps.
-                   Returns an empty list if the table is empty or an error occurs.
+    Retrieves all timestamps and filenames from the database, ordered descending.
+    Returns a list of dictionaries with 'timestamp' and 'filename'.
     """
-    timestamps: List[int] = []
+    data = []
     try:
         with sqlite3.connect(db_path) as conn:
+            conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
-            # Use the index for potentially faster retrieval
-            cursor.execute("SELECT timestamp FROM entries ORDER BY timestamp DESC")
+            cursor.execute("SELECT timestamp, filename FROM entries ORDER BY timestamp DESC")
             results = cursor.fetchall()
-            timestamps = [result[0] for result in results]
+            data = [{"timestamp": r["timestamp"], "filename": r["filename"]} for r in results]
     except sqlite3.Error as e:
         print(f"Database error while fetching timestamps: {e}")
-    return timestamps
+    return data
 
 
 def insert_entry(
-    text: str, timestamp: int, embedding: np.ndarray, app: str, title: str
+    text: str, timestamp: int, embedding: np.ndarray, app: str, title: str, filename: str
 ) -> Optional[int]:
     """
     Inserts a new entry into the database.
-
-    Args:
-        text (str): The extracted text content.
-        timestamp (int): The Unix timestamp of the screenshot.
-        embedding (np.ndarray): The embedding vector for the text.
-        app (str): The name of the active application.
-        title (str): The title of the active window.
-
-    Returns:
-        Optional[int]: The ID of the newly inserted row, or None if insertion fails.
-                       Prints an error message to stderr on failure.
     """
-    embedding_bytes: bytes = embedding.astype(np.float32).tobytes() # Ensure consistent dtype
+    embedding_bytes: bytes = embedding.astype(np.float32).tobytes()
     last_row_id: Optional[int] = None
     try:
         with sqlite3.connect(db_path) as conn:
             cursor = conn.cursor()
             cursor.execute(
-                """INSERT INTO entries (text, timestamp, embedding, app, title)
-                   VALUES (?, ?, ?, ?, ?)
-                   ON CONFLICT(timestamp) DO NOTHING""", # Avoid duplicates based on timestamp
-                (text, timestamp, embedding_bytes, app, title),
+                """INSERT INTO entries (text, timestamp, embedding, app, title, filename)
+                   VALUES (?, ?, ?, ?, ?, ?)
+                   ON CONFLICT(timestamp) DO NOTHING""",
+                (text, timestamp, embedding_bytes, app, title, filename),
             )
             conn.commit()
-            if cursor.rowcount > 0: # Check if insert actually happened
+            if cursor.rowcount > 0:
                 last_row_id = cursor.lastrowid
-            # else:
-                # Optionally log that a duplicate timestamp was encountered
-                # print(f"Skipped inserting entry with duplicate timestamp: {timestamp}")
-
     except sqlite3.Error as e:
-        # More specific error handling can be added (e.g., IntegrityError for UNIQUE constraint)
         print(f"Database error during insertion: {e}")
     return last_row_id

@@ -70,12 +70,12 @@
 {% if timestamps|length > 0 %}
 <div class="timeline-container">
     <div class="viewer-card">
-        <img id="timestampImage" src="/static/{{timestamps[0]}}.webp" alt="Snapshot" class="viewer-image">
+        <img id="timestampImage" src="/static/{{ timestamps[0].filename }}" alt="Snapshot" class="viewer-image">
     </div>
 
     <div class="control-panel">
         <div class="timestamp-label" id="sliderValue">
-            {{ timestamps[0] | timestamp_to_human_readable }}
+            {{ timestamps[0].timestamp | timestamp_to_human_readable }}
         </div>
         <div class="slider-wrapper">
             <span class="material-symbols-rounded">history</span>
@@ -86,19 +86,18 @@
 </div>
 
 <script>
-    const timestamps = {{ timestamps|tojson }};
+    const data = {{ timestamps|tojson }};
     const slider = document.getElementById('discreteSlider');
     const sliderValue = document.getElementById('sliderValue');
     const timestampImage = document.getElementById('timestampImage');
 
     slider.addEventListener('input', function() {
         const index = parseInt(slider.value);
-        const timestamp = timestamps[index];
+        const item = data[index];
 
-        // Simple human readable format (mocking the filter behavior client-side)
-        const date = new Date(timestamp * 1000);
+        const date = new Date(item.timestamp * 1000);
         sliderValue.textContent = date.toLocaleString();
-        timestampImage.src = `/static/${timestamp}.webp`;
+        timestampImage.src = `/static/${item.filename}`;
     });
 </script>
 {% else %}

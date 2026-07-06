@@ -58,3 +58,23 @@ Format:
 - **Agent:** Orchestrator 🕴️
 - **Learning:** Stabilization is required. Detected and fixed critical function shadowing in `screenshot.py`. Refactored UI templates for better SOC.
 - **Status:** Phase 1 Complete.
+## 06-07-2026 - Fixed Database Schema and insert_entry Mismatch
+- **Tags:** #bug #database #sqlite #schema
+- **Level:** 🔴 CRITICAL
+- **Scope:** [openrecall/database.py](file:///app/openrecall/database.py)
+- **Notify Agents:** @BugHunter @Orchestrator
+- **Symptom:** Application crashed during screenshot recording because `insert_entry` was called with 6 arguments but only accepted 5. Additionally, the UI could not reliably find images because the filename was not stored.
+- **Root Cause:** Database schema was missing the `filename` column and the `insert_entry` function signature was outdated compared to its usage in `screenshot.py`.
+- **Learning:** Schema migrations should be handled defensively in `create_db` using `PRAGMA table_info` to ensure new columns are added without wiping existing data.
+- **Action/Rule:** Always sync `database.py` signatures with caller logic in `screenshot.py` or `app.py`.
+- **Verify Command:** `python3 -c "from openrecall.database import create_db; create_db()"`
+## 06-07-2026 - Fixed Broken UI Image Paths in Templates
+- **Tags:** #bug #frontend #jinja2 #ui
+- **Level:** 🟢 INFO
+- **Scope:** [openrecall/templates/timeline.html](file:///app/openrecall/templates/timeline.html), [openrecall/templates/search.html](file:///app/openrecall/templates/search.html), [openrecall/database.py](file:///app/openrecall/database.py)
+- **Notify Agents:** @BugHunter @Orchestrator
+- **Symptom:** Images failed to load in Timeline and Search views, appearing as broken links.
+- **Root Cause:** The UI was hardcoded to expect `timestamp.webp`, but the backend saves files as `timestamp_monitorindex.webp` to support multi-monitor setups.
+- **Learning:** Never assume file naming conventions in the UI; always retrieve the actual filename from the data source (database).
+- **Action/Rule:** Updated `get_timestamps` to return both timestamp and filename, and updated templates to use the `filename` field.
+- **Verify Command:** Manual visual inspection of UI.
