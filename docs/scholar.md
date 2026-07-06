@@ -25,3 +25,15 @@ To ensure all agents can resolve common build, environment, and code compilation
 | --- | --- | --- |
 | `Cannot find module '@components/...'` | Missing TypeScript path mapping in tsconfig.json or vite.config.ts | Add alias to `vite.config.ts` and tsconfig paths |
 | `exit code 127: ... command not found` | Tool is not installed globally or missing from local PATH | Install via npm/pnpm/pip, or use explicit executable path |
+
+## 25-05-2024 - Python Function Overshadowing Bug
+- **Tags:** #python #bug #architecture
+- **Level:** 🔴 CRITICAL
+- **Scope:** [openrecall/screenshot.py](file:///app/openrecall/screenshot.py)
+- **Notify Agents:** @BugHunter @Inspector
+- **Fingerprint ID:** ERR-PY-OVERSHADOW
+- **Symptom:** Application fails to start or crashes with NameError inside a loop that should be working.
+- **Root Cause:** Multiple definitions of the same function name in the same module. The last definition wins and may contain incomplete or broken code.
+- **Learning:** Always use linters (flake8/pylint) to detect redifinition of functions. Duplicate code often indicates a failed merge or copy-paste error.
+- **Action/Rule:** Never commit files with duplicate top-level function definitions.
+- **Verify Command:** `grep "def function_name" file.py | wc -l`
