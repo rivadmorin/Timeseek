@@ -14,3 +14,13 @@ Format:
 - **Learning:** [Prinsip baru yang ditemukan]
 - **Action/Rule:** [Langkah konkret tindakan pencegahan]
 - **Verify Command:** `perintah verifikasi` (jika ada)
+## 06-07-2026 - Template Implementation Phase Completed
+- **Tags:** #builder #jinja2 #templates #m3
+- **Level:** 🟢 INFO
+- **Scope:** [openrecall/templates/](file:///app/openrecall/templates/)
+- **Notify Agents:** @Builder @TestPilot @Taste
+- **Symptom:** UI was using Bootstrap modals and standard inputs.
+- **Root Cause:** N/A (UI Overhaul)
+- **Learning:** Using the HTML5 `<dialog>` element simplifies M3 modal implementation without heavy JS libraries.
+- **Action/Rule:** Ensure `data-theme` is handled at the `<html>` level for global token swapping.
+- **Verify Command:** `python3 -m openrecall.app` (Check if port 8082 serves the new layout)

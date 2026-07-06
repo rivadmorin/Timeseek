@@ -10,63 +10,44 @@
 
 Join our [Discord](https://discord.gg/RzvCYRgUkx) and/or [Telegram](https://t.me/+5DULWTesqUYwYjY0) community to stay informed of updates!
 
-# Take Control of Your Digital Memory
+# Take Control of Your Digital Memory (M3 Overhauled! 🕴️)
 
-OpenRecall is a fully open-source, privacy-first alternative to proprietary solutions like Microsoft's Windows Recall or Limitless' Rewind.ai. With OpenRecall, you can easily access your digital history, enhancing your memory and productivity without compromising your privacy.
+OpenRecall is a fully open-source, privacy-first alternative to proprietary solutions like Microsoft's Windows Recall or Limitless' Rewind.ai.
+
+## ✨ New in this version: Material Design 3
+We've completely overhauled the UI using **Google Material Design 3 (M3)** principles:
+- **Dark/Light Mode Support**: Seamlessly switch between themes.
+- **Offline-First UI**: All Material Web components and fonts are localized for 100% offline usage.
+- **Improved UX**: New Navigation Rail, semantic search cards, and an immersive timeline viewer.
 
 ## What does it do?
 
-OpenRecall captures your digital history through regularly taken snapshots, which are essentially screenshots. The text and images within these screenshots are analyzed and made searchable, allowing you to quickly find specific information by typing relevant keywords into OpenRecall. You can also manually scroll back through your history to revisit past activities.
-
-https://github.com/openrecall/openrecall/assets/16676419/cfc579cb-165b-43e4-9325-9160da6487d2
-
-## Why Choose OpenRecall?
-
-OpenRecall offers several key advantages over closed-source alternatives:
-
-- **Transparency**: OpenRecall is 100% open-source, allowing you to audit the source code for potential backdoors or privacy-invading features.
-- **Cross-platform Support**: OpenRecall works on Windows, macOS, and Linux, giving you the freedom to use it on your preferred operating system.
-- **Privacy-focused**: Your data is stored locally on your device, no internet connection or cloud is required. In addition, you have the option to encrypt the data on a removable disk for added security, read how in our [guide](docs/encryption.md) here. 
-- **Hardware Compatibility**: OpenRecall is designed to work with a [wide range of hardware](docs/hardware.md), unlike proprietary solutions that may require specific certified devices.
-
-<p align="center">
-  <a href="https://twitter.com/elonmusk/status/1792690964672450971" target="_blank">
-    <img src="images/black_mirror.png" alt="Elon Musk Tweet" width="400">
-  </a>
-</p>
+OpenRecall captures your digital history through regularly taken snapshots. The text and images are analyzed and made searchable.
 
 ## Features
 
-- **Time Travel**: Revisit and explore your past digital activities seamlessly across Windows, macOS, or Linux.
-- **Local-First AI**: OpenRecall harnesses the power of local AI processing to keep your data private and secure.
-- **Semantic Search**: Advanced local OCR interprets your history, providing robust semantic search capabilities.
-- **Full Control Over Storage**: Your data is stored locally, giving you complete control over its management and security.
+- **Time Travel**: Revisit past digital activities via our new M3 Timeline scrubber.
+- **Local-First AI**: Privacy and security via local processing.
+- **Semantic Search**: Advanced local OCR search results in a modern M3 grid.
+- **Offline Assets**: No CDN dependencies.
 
-<p align="center">
-  <img src="images/lisa_rewind.webp" alt="Lisa Rewind" width="400">
-</p>
+## Project Structure
 
+OpenRecall is organized into modular components for better maintainability:
 
-## Comparison
-
-
-
-| Feature          | OpenRecall                    | Windows Recall                                  | Rewind.ai                              |
-|------------------|-------------------------------|--------------------------------------------------|----------------------------------------|
-| Transparency     | Open-source                   | Closed-source                                    | Closed-source                          |
-| Supported Hardware | All                         | Copilot+ certified Windows hardware              | M1/M2 Apple Silicon                    |
-| OS Support       | Windows, macOS, Linux         | Windows                                          | macOS                                  |
-| Privacy          | On-device, self-hosted        | Microsoft's privacy policy applies               | Connected to ChatGPT                   |
-| Cost             | Free                          | Part of Windows 11 (requires specialized hardware) | Monthly subscription                   |
-
-## Quick links
-- [Roadmap](https://github.com/orgs/openrecall/projects/2) and you can [vote for your favorite features](https://github.com/openrecall/openrecall/discussions/9#discussion-6775473)
-- [FAQ](https://github.com/openrecall/openrecall/wiki/FAQ)
+- **`openrecall/app.py`**: Main entry point, Flask web server, and UI routing.
+- **`openrecall/templates/`**: Jinja2 HTML templates for the web interface (`timeline.html`, `search.html`).
+- **`openrecall/config.py`**: Configuration management, argument parsing, and storage path setup.
+- **`openrecall/database.py`**: SQLite database schema and data persistence logic.
+- **`openrecall/nlp.py`**: Natural Language Processing for semantic search embeddings using cosine similarity.
+- **`openrecall/ocr.py`**: Optical Character Recognition (`doctr`) to extract text from captured images.
+- **`openrecall/screenshot.py`**: Background thread logic for capturing and storing periodic screenshots.
+- **`openrecall/utils.py`**: Helper functions for time conversion and formatting.
 
 ## Get Started
 
 ### Prerequisites
-- Python 3.11
+- Python 3.12 (Recommended)
 - MacOSX/Windows/Linux
 - Git
 
@@ -79,8 +60,7 @@ To run:
 ```
 python3 -m openrecall.app
 ```
-Open your browser to:
-[http://localhost:8082](http://localhost:8082) to access OpenRecall.
+Open your browser to [http://localhost:8082](http://localhost:8082).
 
 ## Project Structure
 
@@ -133,6 +113,4 @@ As an open-source project, we welcome contributions from the community. If you'd
 mail@datatalk.be
 
 ## License
-
-OpenRecall is released under the [AGPLv3](https://opensource.org/licenses/AGPL-3.0), ensuring that it remains open and accessible to everyone.
-
+OpenRecall is released under the [AGPLv3](https://opensource.org/licenses/AGPL-3.0).

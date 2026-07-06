@@ -1,25 +1,123 @@
 {% extends "layout.html" %}
 {% block content %}
-    <div class="container">
-        <div class="row">
-            {% for entry in entries %}
-                <div class="col-md-3 mb-4">
-                    <div class="card">
-                        <a href="#" data-toggle="modal" data-target="#modal-{{ loop.index0 }}">
-                            <img src="/static/{{ entry['timestamp'] }}.webp" alt="Image" class="card-img-top">
-                        </a>
-                    </div>
-                </div>
-                <div class="modal fade" id="modal-{{ loop.index0 }}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                    <div class="modal-dialog modal-xl" role="document" style="max-width: none; width: 100vw; height: 100vh; padding: 20px;">
-                        <div class="modal-content" style="height: calc(100vh - 40px); width: calc(100vw - 40px); padding: 0;">
-                            <div class="modal-body" style="padding: 0;">
-                                <img src="/static/{{ entry['timestamp'] }}.webp" alt="Image" style="width: 100%; height: 100%; object-fit: contain; margin: 0 auto;">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            {% endfor %}
+<style>
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 24px;
+    }
+
+    .card {
+        background-color: var(--md-sys-color-surface-container);
+        border-radius: var(--md-sys-shape-corner-large);
+        overflow: hidden;
+        cursor: pointer;
+        transition: transform 0.2s, background-color 0.2s;
+        border: 1px solid transparent;
+    }
+
+    .card:hover {
+        background-color: var(--md-sys-color-surface-container-high);
+        transform: translateY(-4px);
+        border-color: var(--md-sys-color-outline-variant);
+    }
+
+    .card-image {
+        width: 100%;
+        aspect-ratio: 16/9;
+        object-fit: cover;
+        background-color: var(--md-sys-color-surface-container-low);
+    }
+
+    .card-content {
+        padding: 16px;
+    }
+
+    .card-title {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--md-sys-color-on-surface);
+        margin: 0 0 4px 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .card-subtitle {
+        font-size: 12px;
+        color: var(--md-sys-color-on-surface-variant);
+        margin: 0;
+    }
+
+    /* Modal Styling */
+    dialog {
+        padding: 0;
+        border: none;
+        border-radius: var(--md-sys-shape-corner-extra-large);
+        background-color: var(--md-sys-color-surface-container-highest);
+        color: var(--md-sys-color-on-surface);
+        max-width: 90vw;
+        max-height: 90vh;
+    }
+
+    dialog::backdrop {
+        background: rgba(0, 0, 0, 0.6);
+    }
+
+    .dialog-content {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .dialog-header {
+        padding: 16px 24px;
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .close-btn {
+        cursor: pointer;
+        color: var(--md-sys-color-on-surface-variant);
+    }
+
+    .dialog-body img {
+        max-width: 100%;
+        max-height: 80vh;
+        display: block;
+        margin: 0 auto;
+    }
+</style>
+
+<div class="grid">
+    {% for entry in entries %}
+    <div class="card" onclick="openModal('modal-{{ loop.index0 }}')">
+        <img src="/static/{{ entry['timestamp'] }}.webp" alt="Snapshot" class="card-image">
+        <div class="card-content">
+            <h3 class="card-title">{{ entry['window_title'] or 'Untitled' }}</h3>
+            <p class="card-subtitle">{{ entry['timestamp'] | timestamp_to_human_readable }}</p>
         </div>
     </div>
+
+    <dialog id="modal-{{ loop.index0 }}">
+        <div class="dialog-content">
+            <div class="dialog-header">
+                <span class="material-symbols-rounded close-btn" onclick="closeModal('modal-{{ loop.index0 }}')">close</span>
+            </div>
+            <div class="dialog-body">
+                <img src="/static/{{ entry['timestamp'] }}.webp" alt="Full Image">
+            </div>
+        </div>
+    </dialog>
+    {% endfor %}
+</div>
+
+<script>
+    function openModal(id) {
+        document.getElementById(id).showModal();
+    }
+
+    function closeModal(id) {
+        document.getElementById(id).close();
+    }
+</script>
 {% endblock %}
