@@ -82,6 +82,19 @@ python3 -m openrecall.app
 Open your browser to:
 [http://localhost:8082](http://localhost:8082) to access OpenRecall.
 
+## Project Structure
+
+OpenRecall is organized into modular components for better maintainability:
+
+- **`openrecall/app.py`**: Main entry point, Flask web server, and UI routing.
+- **`openrecall/templates/`**: Jinja2 HTML templates for the web interface (`timeline.html`, `search.html`).
+- **`openrecall/config.py`**: Configuration management, argument parsing, and storage path setup.
+- **`openrecall/database.py`**: SQLite database schema and data persistence logic.
+- **`openrecall/nlp.py`**: Natural Language Processing for semantic search embeddings using cosine similarity.
+- **`openrecall/ocr.py`**: Optical Character Recognition (`doctr`) to extract text from captured images.
+- **`openrecall/screenshot.py`**: Background thread logic for capturing and storing periodic screenshots.
+- **`openrecall/utils.py`**: Helper functions for time conversion and formatting.
+
 ## Arguments
 `--storage-path` (default: user data path for your OS): allows you to specify the path where the screenshots and database should be stored. We recommend [creating an encrypted volume](docs/encryption.md) to store your data.
 

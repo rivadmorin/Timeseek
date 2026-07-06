@@ -23,3 +23,8 @@ Format:
 - **Symptom:** Initial workspace had critical bugs (duplicate functions) and poor SOC (UI in app.py).
 - **Learning:** Discovery phase must include manual code inspection for "shadow bugs" that automated tools might miss if dependencies are missing.
 - **Action/Rule:** Prioritize "Stabilization" plans before "Feature" plans for legacy or unmaintained codebases.
+# Orchestrator Learning: Discovery Phase
+- **Plan ID:** discovery
+- **Agent:** Orchestrator 🕴️
+- **Learning:** Stabilization is required. Detected and fixed critical function shadowing in `screenshot.py`. Refactored UI templates for better SOC.
+- **Status:** Phase 1 Complete.

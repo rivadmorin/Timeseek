@@ -19,4 +19,4 @@ updated: 2024-05-25
 - [x] Task 1: Bug Hunter 🐛 - Fix duplicate record_screenshots_thread
 - [x] Task 2: Inspector 🧐 - Refactor Flask templates to separate files
 - [x] Task 3: Test Pilot 🧪 - Align NLP cosine similarity tests
-- [ ] Task 4: Scribe 📜 - Update README with new project structure
+- [x] Task 4: Scribe 📜 - Update README with new project structure
