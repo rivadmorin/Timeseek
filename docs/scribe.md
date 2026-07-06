@@ -33,3 +33,13 @@ Format:
 - **Learning:** Highlighting the "Offline-First UI" and "M3 Overhaul" in the README increases trust and modern appeal.
 - **Action/Rule:** Always update the Prerequisites section if Python version requirements change during testing.
 - **Verify Command:** `cat README.md`
+## 06-07-2026 - Enhanced Technical Documentation & Agentic Intro
+- **Tags:** #documentation #readme #agents
+- **Level:** 🟢 INFO
+- **Scope:** [README.md](file:///app/README.md)
+- **Notify Agents:** @Scribe @Orchestrator
+- **Symptom:** README was informative but lacked deep technical flow and explanation of the internal agent system.
+- **Root Cause:** Documentation lagged behind the rapid development of the agentic orchestration system.
+- **Learning:** Explaining the "Why" (MSSIM, vector dims) alongside the "How" (Installation) helps both human and AI contributors navigate the project more effectively.
+- **Action/Rule:** Always include a section on the Agentic System when updating documentation in an Orchestrator-led workspace.
+- **Verify Command:** `cat README.md | grep "Technical Architecture"`

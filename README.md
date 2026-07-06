@@ -22,95 +22,81 @@ We've completely overhauled the UI using **Google Material Design 3 (M3)** princ
 
 ## What does it do?
 
-OpenRecall captures your digital history through regularly taken snapshots. The text and images are analyzed and made searchable.
+OpenRecall captures your digital history through regularly taken snapshots. The text and images are analyzed and made searchable locally on your machine.
 
 ## Features
 
 - **Time Travel**: Revisit past digital activities via our new M3 Timeline scrubber.
-- **Local-First AI**: Privacy and security via local processing.
-- **Semantic Search**: Advanced local OCR search results in a modern M3 grid.
-- **Offline Assets**: No CDN dependencies.
+- **Local-First AI**: Privacy and security via local processing. No data ever leaves your device.
+- **Semantic Search**: Advanced local OCR and vector search results in a modern M3 grid.
+- **Offline Assets**: 100% offline capable. No CDN dependencies or external API calls for core functionality.
+
+## Technical Architecture
+
+OpenRecall operates on a sophisticated pipeline designed for efficiency and privacy:
+
+1.  **Deduplication (MSSIM)**: Uses *Mean Structural Similarity Index* to compare screenshots. If the screen hasn't changed significantly, processing is skipped to save CPU/Battery.
+2.  **OCR (doctr)**: Extracts text using a specialized `doctr` model optimized for local execution.
+3.  **Embeddings (NLP)**: Text is converted into 384-dimensional vectors using the `all-MiniLM-L6-v2` model.
+4.  **Storage (SQLite)**: Metadata and embeddings are stored in a local SQLite database for fast retrieval and semantic search.
 
 ## Project Structure
 
-OpenRecall is organized into modular components for better maintainability:
-
-- **`openrecall/app.py`**: Main entry point, Flask web server, and UI routing.
-- **`openrecall/templates/`**: Jinja2 HTML templates for the web interface (`timeline.html`, `search.html`).
-- **`openrecall/config.py`**: Configuration management, argument parsing, and storage path setup.
-- **`openrecall/database.py`**: SQLite database schema and data persistence logic.
-- **`openrecall/nlp.py`**: Natural Language Processing for semantic search embeddings using cosine similarity.
-- **`openrecall/ocr.py`**: Optical Character Recognition (`doctr`) to extract text from captured images.
-- **`openrecall/screenshot.py`**: Background thread logic for capturing and storing periodic screenshots.
-- **`openrecall/utils.py`**: Helper functions for time conversion and formatting.
+- **`openrecall/app.py`**: Flask server, UI routing, and background recording thread management.
+- **`openrecall/screenshot.py`**: Core logic for multi-monitor capture and MSSIM-based deduplication.
+- **`openrecall/ocr.py`**: OCR implementation using the `python-doctr` library.
+- **`openrecall/nlp.py`**: Semantic search logic, vector embeddings, and cosine similarity calculations.
+- **`openrecall/database.py`**: SQLite schema, migrations (defensive column addition), and persistence.
+- **`openrecall/config.py`**: Centralized configuration and CLI argument parsing.
+- **`openrecall/templates/`**: M3-compliant Jinja2 templates for the web interface.
 
 ## Get Started
 
 ### Prerequisites
 - Python 3.12 (Recommended)
-- MacOSX/Windows/Linux
+- MacOSX / Windows / Linux
 - Git
 
-To install:
-```
+### Standard Installation
+```bash
 python3 -m pip install --upgrade --no-cache-dir git+https://github.com/openrecall/openrecall.git
 ```
 
-To run:
+### Advanced / Development Installation
+If you are contributing or need specific OCR dependencies:
+```bash
+git clone https://github.com/openrecall/openrecall.git
+cd openrecall
+pip install -e .
 ```
+*Note: This project depends on a specific fork of `python-doctr` for optimized performance.*
+
+### To Run
+```bash
 python3 -m openrecall.app
 ```
 Open your browser to [http://localhost:8082](http://localhost:8082).
 
-## Project Structure
-
-OpenRecall is organized into modular components for better maintainability:
-
-- **`openrecall/app.py`**: Main entry point, Flask web server, and UI routing.
-- **`openrecall/templates/`**: Jinja2 HTML templates for the web interface (`timeline.html`, `search.html`).
-- **`openrecall/config.py`**: Configuration management, argument parsing, and storage path setup.
-- **`openrecall/database.py`**: SQLite database schema and data persistence logic.
-- **`openrecall/nlp.py`**: Natural Language Processing for semantic search embeddings using cosine similarity.
-- **`openrecall/ocr.py`**: Optical Character Recognition (`doctr`) to extract text from captured images.
-- **`openrecall/screenshot.py`**: Background thread logic for capturing and storing periodic screenshots.
-- **`openrecall/utils.py`**: Helper functions for time conversion and formatting.
-
 ## Arguments
-`--storage-path` (default: user data path for your OS): allows you to specify the path where the screenshots and database should be stored. We recommend [creating an encrypted volume](docs/encryption.md) to store your data.
+- `--storage-path`: Specify where screenshots and database are stored. Default is OS-specific user data folder.
+- `--port`: Custom port for the web server (default: 8082).
+- `--primary-monitor-only`: Only record the primary monitor to save space/processing.
 
-`--primary-monitor-only` (default: False): only record the primary monitor (rather than individual screenshots for other monitors)
+## 🤖 Agentic Development (Jules & The Orchestrator)
+
+This repository is optimized for **Agentic Workflow**. We use a specialized system of "Specialized Agents" (Scribe, Inspector, Builder, etc.) coordinated by an **Orchestrator**.
+
+- **Documentation**: All agent-specific memories and technical deep-dives are located in the `docs/` directory.
+- **Index**: See `docs/index.md` for a map of the project's knowledge base.
+- **Contributing**: If you are an AI agent or a human developer, please refer to `AGENTS.md` for development protocols.
 
 ## Uninstall instructions
 
-To uninstall OpenRecall and remove all stored data:
-
-1. Uninstall the package:
-   ```
-   python3 -m pip uninstall openrecall
-   ```
-
+1. Uninstall the package: `pip uninstall openrecall`
 2. Remove stored data:
-   - On Windows:
-     ```
-     rmdir /s %APPDATA%\openrecall
-     ```
-   - On macOS:
-     ```
-     rm -rf ~/Library/Application\ Support/openrecall
-     ```
-   - On Linux:
-     ```
-     rm -rf ~/.local/share/openrecall
-     ```
-
-Note: If you specified a custom storage path at any time using the `--storage-path` argument, make sure to remove that directory too.
-
-## Contribute
-
-As an open-source project, we welcome contributions from the community. If you'd like to help improve OpenRecall, please submit a pull request or open an issue on our GitHub repository.
-
-## Contact the maintainers
-mail@datatalk.be
+   - **Windows**: `rmdir /s %APPDATA%\\openrecall`
+   - **macOS**: `rm -rf ~/Library/Application\\ Support/openrecall`
+   - **Linux**: `rm -rf ~/.local/share/openrecall`
 
 ## License
 OpenRecall is released under the [AGPLv3](https://opensource.org/licenses/AGPL-3.0).
