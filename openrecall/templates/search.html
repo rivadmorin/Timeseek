@@ -91,10 +91,10 @@
 <div class="grid">
     {% for entry in entries %}
     <div class="card" onclick="openModal('modal-{{ loop.index0 }}')">
-        <img src="/static/{{ entry['timestamp'] }}.webp" alt="Snapshot" class="card-image">
+        <img src="/static/{{ entry.filename }}" alt="Snapshot" class="card-image">
         <div class="card-content">
-            <h3 class="card-title">{{ entry['window_title'] or 'Untitled' }}</h3>
-            <p class="card-subtitle">{{ entry['timestamp'] | timestamp_to_human_readable }}</p>
+            <h3 class="card-title">{{ entry.title or 'Untitled' }}</h3>
+            <p class="card-subtitle">{{ entry.timestamp | timestamp_to_human_readable }}</p>
         </div>
     </div>
 
@@ -104,7 +104,7 @@
                 <span class="material-symbols-rounded close-btn" onclick="closeModal('modal-{{ loop.index0 }}')">close</span>
             </div>
             <div class="dialog-body">
-                <img src="/static/{{ entry['timestamp'] }}.webp" alt="Full Image">
+                <img src="/static/{{ entry.filename }}" alt="Full Image">
             </div>
         </div>
     </dialog>

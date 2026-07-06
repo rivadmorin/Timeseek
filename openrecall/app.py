@@ -3,7 +3,7 @@ from threading import Thread
 import numpy as np
 from flask import Flask, render_template, request, send_from_directory
 
-from openrecall.config import appdata_folder, screenshots_path
+from openrecall.config import appdata_folder, screenshots_path, args
 from openrecall.database import create_db, get_all_entries, get_timestamps
 from openrecall.nlp import cosine_similarity, get_embedding
 from openrecall.screenshot import record_screenshots_thread
@@ -17,19 +17,19 @@ app.jinja_env.filters["timestamp_to_human_readable"] = timestamp_to_human_readab
 
 @app.route("/")
 def timeline():
-    # connect to db
+    """Renders the timeline view showing all recorded moments."""
     timestamps = get_timestamps()
     return render_template("timeline.html", timestamps=timestamps)
 
 
 @app.route("/search")
 def search():
+    """Handles search queries and returns relevant entries based on embedding similarity."""
     q = request.args.get("q", "")
     if not q:
         return render_template("search.html", entries=[])
 
     entries = get_all_entries()
-    # BUG FIX: embeddings are already numpy arrays from get_all_entries()
     embeddings = [entry.embedding for entry in entries]
     query_embedding = get_embedding(q)
     similarities = [cosine_similarity(query_embedding, emb) for emb in embeddings]
@@ -39,8 +39,15 @@ def search():
     return render_template("search.html", entries=sorted_entries)
 
 
+@app.route("/timeline")
+def timeline_redirect():
+    """Alias for the root timeline route."""
+    return timeline()
+
+
 @app.route("/static/<filename>")
 def serve_image(filename):
+    """Serves recorded screenshots from the appdata directory."""
     return send_from_directory(screenshots_path, filename)
 
 
@@ -48,9 +55,10 @@ if __name__ == "__main__":
     create_db()
 
     print(f"Appdata folder: {appdata_folder}")
+    print(f"Starting server on port: {args.port}")
 
-    # Start the thread to record screenshots
-    t = Thread(target=record_screenshots_thread)
+    # Start the background thread for continuous screenshot recording
+    t = Thread(target=record_screenshots_thread, daemon=True)
     t.start()
 
-    app.run(port=8082)
+    app.run(port=args.port)

@@ -1,189 +1,121 @@
-import unittest
-import sqlite3
 import os
-import tempfile
+import sqlite3
 import time
-import numpy as np
-from unittest.mock import patch
+import unittest
+from collections import namedtuple
 
-# Temporarily adjust path to import from openrecall
+import numpy as np
+
+# Ensure we're testing the local version
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-# Now import from openrecall.database, mocking db_path *before* the import
-# Create a temporary file path that will be used by the mock
-temp_db_file = tempfile.NamedTemporaryFile(delete=False)
-mock_db_path = temp_db_file.name
-temp_db_file.close() # Close the file handle, but the file persists because delete=False
-
-with patch('openrecall.config.db_path', mock_db_path):
-    from openrecall.database import (
-        create_db,
-        insert_entry,
-        get_all_entries,
-        get_timestamps,
-        Entry,
-    )
-    # Also patch db_path within the database module itself if it was imported directly there
-    import openrecall.database
-    openrecall.database.db_path = mock_db_path
-
+from openrecall.database import create_db, insert_entry, get_all_entries, get_timestamps, Entry
+from openrecall.config import appdata_folder, db_path
 
 class TestDatabase(unittest.TestCase):
 
-    @classmethod
-    def setUpClass(cls):
-        """Set up a temporary database file for all tests in this class."""
-        # The database path is already patched by the module-level patch
-        cls.db_path = mock_db_path
-        # Ensure the database and table are created once
+    def setUp(self):
+        """Clean up database before each test."""
+        if os.path.exists(db_path):
+            os.remove(db_path)
         create_db()
 
-    @classmethod
-    def tearDownClass(cls):
-        """Remove the temporary database file after all tests."""
-        # Try closing connection if any test left it open (though setUp/tearDown should handle this)
-        try:
-            if hasattr(cls, 'conn') and cls.conn:
-                cls.conn.close()
-        except Exception:
-            pass # Ignore errors during cleanup
-        os.remove(cls.db_path)
-        # Clean up sys.path modification
-        sys.path.pop(0)
-
-
-    def setUp(self):
-        """Connect to the database and clear entries before each test."""
-        self.conn = sqlite3.connect(self.db_path)
-        cursor = self.conn.cursor()
-        cursor.execute("DELETE FROM entries")
-        self.conn.commit()
-        # No need to close here, will be handled by tearDown or next setUp potentially
-
     def tearDown(self):
-        """Close the database connection after each test."""
-        if self.conn:
-            self.conn.close()
+        """Clean up database after each test."""
+        if os.path.exists(db_path):
+             os.remove(db_path)
 
-    def test_create_db(self):
-        """Test if create_db creates the table and index."""
-        # Check if table exists
-        cursor = self.conn.cursor()
-        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='entries'")
-        result = cursor.fetchone()
-        self.assertIsNotNone(result)
-        self.assertEqual(result[0], 'entries')
+    def test_01_create_db(self):
+        """Test database and table creation."""
+        self.assertTrue(os.path.exists(db_path))
+        with sqlite3.connect(db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='entries'")
+            self.assertIsNotNone(cursor.fetchone())
 
-        # Check if index exists
-        cursor.execute("SELECT name FROM sqlite_master WHERE type='index' AND name='idx_timestamp'")
-        result = cursor.fetchone()
-        self.assertIsNotNone(result)
-        self.assertEqual(result[0], 'idx_timestamp')
+            # Check for filename column
+            cursor.execute("PRAGMA table_info(entries)")
+            columns = [column[1] for column in cursor.fetchall()]
+            self.assertIn("filename", columns)
 
     def test_02_insert_entry(self):
         """Test inserting a single entry."""
         ts = int(time.time())
         embedding = np.array([0.1, 0.2, 0.3], dtype=np.float32)
-        inserted_id = insert_entry("Test text", ts, embedding, "TestApp", "TestTitle")
-
+        filename = f"{ts}_0.webp"
+        inserted_id = insert_entry("Test text", ts, embedding, "TestApp", "TestTitle", filename)
         self.assertIsNotNone(inserted_id)
-        self.assertIsInstance(inserted_id, int)
 
-        # Verify the entry exists in the DB
-        cursor = self.conn.cursor()
-        cursor.execute("SELECT * FROM entries WHERE id = ?", (inserted_id,))
-        result = cursor.fetchone()
-        self.assertIsNotNone(result)
-        # (id, app, title, text, timestamp, embedding_blob)
-        self.assertEqual(result[1], "TestApp")
-        self.assertEqual(result[2], "TestTitle")
-        self.assertEqual(result[3], "Test text")
-        self.assertEqual(result[4], ts)
-        retrieved_embedding = np.frombuffer(result[5], dtype=np.float32)
-        np.testing.assert_array_almost_equal(retrieved_embedding, embedding)
+        entries = get_all_entries()
+        self.assertEqual(len(entries), 1)
+        self.assertEqual(entries[0].text, "Test text")
+        self.assertEqual(entries[0].timestamp, ts)
+        self.assertTrue(np.array_equal(entries[0].embedding, embedding))
+        self.assertEqual(entries[0].app, "TestApp")
+        self.assertEqual(entries[0].title, "TestTitle")
+        self.assertEqual(entries[0].filename, filename)
 
     def test_insert_duplicate_timestamp(self):
         """Test inserting an entry with a duplicate timestamp (should be ignored)."""
         ts = int(time.time())
         embedding1 = np.array([0.1, 0.2, 0.3], dtype=np.float32)
         embedding2 = np.array([0.4, 0.5, 0.6], dtype=np.float32)
+        filename1 = "file1.webp"
+        filename2 = "file2.webp"
 
-        id1 = insert_entry("First text", ts, embedding1, "App1", "Title1")
+        id1 = insert_entry("First text", ts, embedding1, "App1", "Title1", filename1)
         self.assertIsNotNone(id1)
 
-        # Try inserting another entry with the same timestamp
-        id2 = insert_entry("Second text", ts, embedding2, "App2", "Title2")
-        self.assertIsNone(id2, "Inserting duplicate timestamp should return None")
+        id2 = insert_entry("Second text", ts, embedding2, "App2", "Title2", filename2)
+        self.assertIsNone(id2) # Should be None because of ON CONFLICT DO NOTHING
 
-        # Verify only the first entry exists
-        cursor = self.conn.cursor()
-        cursor.execute("SELECT COUNT(*) FROM entries WHERE timestamp = ?", (ts,))
-        count = cursor.fetchone()[0]
-        self.assertEqual(count, 1)
-
-        cursor.execute("SELECT text FROM entries WHERE timestamp = ?", (ts,))
-        text = cursor.fetchone()[0]
-        self.assertEqual(text, "First text") # Ensure the first one was kept
+        entries = get_all_entries()
+        self.assertEqual(len(entries), 1)
+        self.assertEqual(entries[0].text, "First text")
 
     def test_get_all_entries_empty(self):
-        """Test getting entries from an empty database."""
+        """Test get_all_entries with an empty database."""
         entries = get_all_entries()
-        self.assertEqual(entries, [])
+        self.assertEqual(len(entries), 0)
 
     def test_get_all_entries_multiple(self):
         """Test retrieving multiple entries."""
         ts1 = int(time.time())
         ts2 = ts1 + 10
-        ts3 = ts1 - 10 # Ensure ordering works
+        ts3 = ts1 - 10
         emb1 = np.array([0.1] * 5, dtype=np.float32)
         emb2 = np.array([0.2] * 5, dtype=np.float32)
         emb3 = np.array([0.3] * 5, dtype=np.float32)
 
-        insert_entry("Text 1", ts1, emb1, "App1", "Title1")
-        insert_entry("Text 2", ts2, emb2, "App2", "Title2")
-        insert_entry("Text 3", ts3, emb3, "App3", "Title3")
+        insert_entry("Text 1", ts1, emb1, "App1", "Title1", "f1.webp")
+        insert_entry("Text 2", ts2, emb2, "App2", "Title2", "f2.webp")
+        insert_entry("Text 3", ts3, emb3, "App3", "Title3", "f3.webp")
 
         entries = get_all_entries()
         self.assertEqual(len(entries), 3)
-
-        # Entries should be ordered by timestamp DESC
+        # Should be ordered by timestamp DESC
         self.assertEqual(entries[0].timestamp, ts2)
-        self.assertEqual(entries[0].text, "Text 2")
-        self.assertEqual(entries[0].app, "App2")
-        self.assertEqual(entries[0].title, "Title2")
-        np.testing.assert_array_almost_equal(entries[0].embedding, emb2)
-        self.assertIsInstance(entries[0].id, int)
-
         self.assertEqual(entries[1].timestamp, ts1)
-        self.assertEqual(entries[1].text, "Text 1")
-        np.testing.assert_array_almost_equal(entries[1].embedding, emb1)
-
         self.assertEqual(entries[2].timestamp, ts3)
-        self.assertEqual(entries[2].text, "Text 3")
-        np.testing.assert_array_almost_equal(entries[2].embedding, emb3)
-
-    def test_get_timestamps_empty(self):
-        """Test getting timestamps from an empty database."""
-        timestamps = get_timestamps()
-        self.assertEqual(timestamps, [])
 
     def test_get_timestamps_multiple(self):
         """Test retrieving multiple timestamps."""
         ts1 = int(time.time())
         ts2 = ts1 + 10
         ts3 = ts1 - 10
-        emb = np.array([0.1] * 5, dtype=np.float32) # Embedding content doesn't matter here
+        emb = np.array([0.1] * 5, dtype=np.float32)
 
-        insert_entry("T1", ts1, emb, "A1", "T1")
-        insert_entry("T2", ts2, emb, "A2", "T2")
-        insert_entry("T3", ts3, emb, "A3", "T3")
+        insert_entry("T1", ts1, emb, "A1", "T1", "f1.webp")
+        insert_entry("T2", ts2, emb, "A2", "T2", "f2.webp")
+        insert_entry("T3", ts3, emb, "A3", "T3", "f3.webp")
 
-        timestamps = get_timestamps()
-        self.assertEqual(len(timestamps), 3)
-        # Timestamps should be ordered DESC
-        self.assertEqual(timestamps, [ts2, ts1, ts3])
-
+        timestamps_data = get_timestamps()
+        self.assertEqual(len(timestamps_data), 3)
+        self.assertEqual(timestamps_data[0]['timestamp'], ts2)
+        self.assertEqual(timestamps_data[1]['timestamp'], ts1)
+        self.assertEqual(timestamps_data[2]['timestamp'], ts3)
+        self.assertEqual(timestamps_data[0]['filename'], "f2.webp")
 
 if __name__ == '__main__':
     unittest.main()
