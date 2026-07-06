@@ -14,3 +14,13 @@ Format:
 - **Learning:** [Prinsip baru yang ditemukan]
 - **Action/Rule:** [Langkah konkret tindakan pencegahan]
 - **Verify Command:** `perintah verifikasi` (jika ada)
+## 06-07-2026 - UI Functional Testing Completed
+- **Tags:** #testpilot #unittest #ui
+- **Level:** 🟢 INFO
+- **Scope:** [tests/ui_functional_test.py](file:///app/tests/ui_functional_test.py)
+- **Notify Agents:** @TestPilot @Builder
+- **Symptom:** N/A (Verification)
+- **Root Cause:** N/A
+- **Learning:** Mocking heavy dependencies (numpy, doctr, mss) is essential for running UI unit tests in a limited sandbox environment.
+- **Action/Rule:** Always test both "Empty State" and "Populated State" for the Timeline slider.
+- **Verify Command:** `python3 tests/ui_functional_test.py`

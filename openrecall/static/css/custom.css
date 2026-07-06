@@ -1,0 +1,59 @@
+/* Taste 💅 - Visual Rhythm & Polish */
+
+/* Concentric Rounded Corners */
+.card {
+    border-radius: var(--md-sys-shape-corner-large);
+}
+
+.card-image {
+    border-radius: calc(var(--md-sys-shape-corner-large) - 4px) calc(var(--md-sys-shape-corner-large) - 4px) 0 0;
+}
+
+/* Transitions */
+* {
+    transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--md-sys-color-surface-container-highest);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--md-sys-color-outline);
+}
+
+/* Focus States */
+:focus-visible {
+    outline: 2px solid var(--md-sys-color-primary);
+    outline-offset: 2px;
+}
+
+/* Animation for theme toggle */
+#theme-icon {
+    transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+}
+
+.nav-item:active {
+    transform: scale(0.9);
+}
+
+/* Typography Harmony */
+h3.card-title {
+    font-family: 'Inter', sans-serif;
+    letter-spacing: 0.1px;
+}
+
+.timestamp-label {
+    font-variant-numeric: tabular-nums;
+}

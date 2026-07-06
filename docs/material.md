@@ -14,3 +14,13 @@ Format:
 - **Learning:** [Prinsip baru yang ditemukan]
 - **Action/Rule:** [Langkah konkret tindakan pencegahan]
 - **Verify Command:** `perintah verifikasi` (jika ada)
+## 06-07-2026 - M3 Design System Tokens Configured
+- **Tags:** #material #tokens #m3 #css
+- **Level:** 🟢 INFO
+- **Scope:** [openrecall/static/css/m3-tokens.css](file:///app/openrecall/static/css/m3-tokens.css)
+- **Notify Agents:** @Material @Builder @Taste
+- **Symptom:** UI lacked standardized M3 color tokens.
+- **Root Cause:** N/A (UI Overhaul)
+- **Learning:** Defining Surface Containers (Lowest to Highest) is key for M3's "Tonal Elevation" logic in Dark Mode.
+- **Action/Rule:** Always use --md-sys-color-* variables instead of hex codes in templates.
+- **Verify Command:** `grep "md-sys-color" openrecall/static/css/m3-tokens.css`

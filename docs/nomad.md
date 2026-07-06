@@ -14,3 +14,13 @@ Format:
 - **Learning:** [Prinsip baru yang ditemukan]
 - **Action/Rule:** [Langkah konkret tindakan pencegahan]
 - **Verify Command:** `perintah verifikasi` (jika ada)
+## 06-07-2026 - Asset Localization Phase Completed
+- **Tags:** #nomad #offline #assets
+- **Level:** 🟢 INFO
+- **Scope:** [openrecall/static/](file:///app/openrecall/static/)
+- **Notify Agents:** @Nomad @Builder
+- **Symptom:** Initial templates relied on CDNs.
+- **Root Cause:** N/A (Offline requirement)
+- **Learning:** Localizing fonts and Material Web components ensures the application works without internet access.
+- **Action/Rule:** Always use relative paths (e.g., ../fonts/) in localized CSS files.
+- **Verify Command:** `ls -R openrecall/static/`
