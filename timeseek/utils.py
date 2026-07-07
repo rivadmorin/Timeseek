@@ -236,3 +236,19 @@ def is_user_active() -> bool:
         return is_user_active_linux()
     else:
         return True
+
+def get_app_category(app_name: str) -> str:
+    """Categorizes an application based on its name."""
+    app_name = app_name.lower()
+    categories = {
+        "Development": ["code", "visual studio", "terminal", "iterm", "pycharm", "intellij", "docker", "github", "sublime", "vim"],
+        "Productivity": ["word", "excel", "powerpoint", "sheets", "docs", "slides", "notion", "obsidian", "slack", "teams", "discord", "outlook", "mail", "notes"],
+        "Browsing": ["chrome", "firefox", "safari", "edge", "brave", "opera"],
+        "Social": ["whatsapp", "telegram", "messenger", "twitter", "facebook", "instagram", "linkedin"],
+        "Entertainment": ["spotify", "netflix", "youtube", "vlc", "mpv", "steam", "games"],
+        "System": ["settings", "preferences", "finder", "explorer", "task manager", "activity monitor"]
+    }
+    for category, keywords in categories.items():
+        if any(kw in app_name for kw in keywords):
+            return category
+    return "Other"

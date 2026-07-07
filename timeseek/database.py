@@ -191,3 +191,40 @@ def prune_old_data(retention_days: int) -> int:
         print(f"Database error during pruning: {e}")
 
     return deleted_count
+
+def delete_entries_by_range(start_timestamp: int, end_timestamp: int) -> int:
+    """
+    Deletes entries within a specific timestamp range.
+    Returns the number of deleted records.
+    """
+    import os
+    from timeseek.config import screenshots_path
+
+    deleted_count = 0
+    try:
+        with sqlite3.connect(db_path) as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+
+            # Find filenames to delete from disk
+            cursor.execute("SELECT filename FROM entries WHERE timestamp >= ? AND timestamp <= ?", (start_timestamp, end_timestamp))
+            files_to_delete = cursor.fetchall()
+
+            for row in files_to_delete:
+                if row["filename"]:
+                    filepath = os.path.join(screenshots_path, row["filename"])
+                    if os.path.exists(filepath):
+                        try:
+                            os.remove(filepath)
+                        except Exception as e:
+                            print(f"Failed to delete file {filepath}: {e}")
+
+            # Delete from database
+            cursor.execute("DELETE FROM entries WHERE timestamp >= ? AND timestamp <= ?", (start_timestamp, end_timestamp))
+            deleted_count = cursor.rowcount
+            conn.commit()
+
+    except sqlite3.Error as e:
+        print(f"Database error during range deletion: {e}")
+
+    return deleted_count

@@ -91,3 +91,36 @@ Format:
 - **Learning:** Playwright can be used in the agent environment to capture live application state for documentation.
 - **Action/Rule:** Always include screenshots when making significant UI/UX changes to ensure clarity for users.
 - **Verify Command:** `grep "UI Gallery" README.md`
+# Builder Memory Journal entry
+## 2026-07-07 - Phase 1 Ten Features Expansion
+- **Tags:** #ui #privacy #database #builder #taste
+- **Level:** 🟢 INFO
+- **Scope:** timeseek/templates/timeline.html, timeseek/templates/search.html, timeseek/config.py, timeseek/screenshot.py, timeseek/database.py, timeseek/app.py
+- **Notify Agents:** @Orchestrator @Builder @Taste @Sentinel
+- **Symptom:** Missing quick UX wins and essential privacy controls.
+- **Learning:**
+    1. Click-to-copy OCR text requires data mapping in the frontend and a safe way to handle special characters in JSON.
+    2. Keyword blacklisting during recording provides a second layer of privacy after app-based filtering.
+    3. Bulk deletion is a highly requested management feature that requires careful timestamp range logic.
+- **Action/Rule:** Always escape template variables and provide user-friendly bulk management tools for privacy-sensitive data.
+## Phase 2 Ten Features Expansion
+- **Tags:** #analytics #insights #ui #builder #scholar
+- **Level:** 🟢 INFO
+- **Scope:** timeseek/utils.py, timeseek/app.py, timeseek/templates/dashboard.html, timeseek/templates/timeline.html
+- **Notify Agents:** @Orchestrator @Builder @Scholar @Taste
+- **Symptom:** Dashboard lacked visual depth and semantic insights.
+- **Learning:**
+    1. Heatmaps and Word Clouds can be implemented with minimal JS by providing clean JSON APIs.
+    2. Category-based grouping helps users navigate history more effectively.
+    3. Basic stop-word filtering is essential for meaningful word clouds.
+- **Action/Rule:** Use the `get_app_category` utility to enrich all UI views with semantic metadata.
+## Phase 3 Ten Features Expansion
+- **Tags:** #optimization #ocr #export #builder #nomad
+- **Level:** 🟢 INFO
+- **Scope:** timeseek/config.py, timeseek/ocr.py, timeseek/app.py, timeseek/templates/export_pdf.html, timeseek/templates/timeline.html
+- **Notify Agents:** @Orchestrator @Builder @Nomad @Scribe
+- **Symptom:** Users lacked control over storage and could not export their data easily.
+- **Learning:**
+    1. Using the browser's native print functionality for "Export to PDF" is a lightweight way to maintain the "Offline/Portable" goal without adding heavy PDF generation libraries.
+    2. Exposing OCR language and image quality as CLI arguments allows users to tune performance vs. accuracy.
+- **Action/Rule:** Always prefer native browser capabilities for file exports when possible to keep the application footprint small.
