@@ -138,3 +138,12 @@ Format:
 - **Learning:** Playwright can be used in the agent environment to capture live application state for documentation.
 - **Action/Rule:** Always include screenshots when making significant UI/UX changes to ensure clarity for users.
 - **Verify Command:** `grep "UI Gallery" README.md`
+# Bug Hunter 🐛 Learning: Headless Stability in Recording Threads
+- **Plan ID:** ui_refinement_and_verification
+- **Agent:** Bug Hunter 🐛
+- **Level:** 🔴 CRITICAL
+- **Symptom:** `mss.mss()` raises `XError: Cannot connect to display` when `DISPLAY` is unset, causing the recording thread to crash on startup.
+- **Root Cause:** Lack of defensive checks for the display environment in Linux headless environments.
+- **Learning:** Always verify hardware/environment requirements (`DISPLAY`, GPU, etc.) before entering long-running loops. Wrap main thread loops in `try...except` to prevent a single error from killing background services.
+- **Action/Rule:** Check for `DISPLAY` on Linux before calling `mss`.
+- **Verify Command:** Start the app with `unset DISPLAY` and verify the thread remains alive (check logs).

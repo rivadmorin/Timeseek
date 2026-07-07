@@ -98,3 +98,9 @@ Format:
 - **Learning:** Playwright can be used in the agent environment to capture live application state for documentation.
 - **Action/Rule:** Always include screenshots when making significant UI/UX changes to ensure clarity for users.
 - **Verify Command:** `grep "UI Gallery" README.md`
+# Inspector 🧐 Learning: Documentation Standardization & Import Hygiene
+- **Plan ID:** ui_refinement_and_verification
+- **Agent:** Inspector 🧐
+- **Learning:** Standardizing on Google-style docstrings improves codebase discoverability and helps LLM agents understand function boundaries. Moving hardcoded constants (ports, directories) to `config.py` and using `argparse` provides a cleaner entry point for users. Explicit platform checks in `utils.py` reduce runtime `ImportError` noise.
+- **Action/Rule:** Use Google-style docstrings for all new functions. Centralize all runtime configurations in `config.py`.
+- **Verify Command:** `python3 -m py_compile timeseek/utils.py timeseek/ocr.py timeseek/config.py`

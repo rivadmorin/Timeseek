@@ -68,3 +68,9 @@ Format:
 - **Learning:** Mocking heavy dependencies (numpy, doctr, mss) is essential for running UI unit tests in a limited sandbox environment.
 - **Action/Rule:** Always test both "Empty State" and "Populated State" for the Timeline slider.
 - **Verify Command:** `python3 tests/ui_functional_test.py`
+# Test Pilot 🧪 Learning: UI Verification via Flask Mocking
+- **Plan ID:** ui_refinement_and_verification
+- **Agent:** Test Pilot 🧪
+- **Learning:** Mocking `cached_entries` in `app.py` allows for fast verification of UI templates and API endpoints without needing a full database or OCR engine. Using `conftest.py` to centralize Flask app configuration and fixtures ensures consistent test environments.
+- **Action/Rule:** Always include a `conftest.py` for Flask projects to handle shared fixtures and environment setup.
+- **Verify Command:** `PYTHONPATH=. python3 -m pytest tests/test_ui_features.py`
