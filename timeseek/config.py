@@ -35,7 +35,11 @@ if not os.path.exists(screenshots_path):
 
 # Default configuration constants
 DEFAULT_PORT = 8082
-DEFAULT_SIMILARITY_THRESHOLD = 0.9
+DEFAULT_SIMILARITY_THRESHOLD = 0.95
+SCREENSHOT_QUALITY = 80
+IDLE_SLEEP = 5
+ACTIVE_SLEEP = 3
+USER_ACTIVITY_THRESHOLD = 5.0
 
 # Argument parsing for CLI customization
 parser = argparse.ArgumentParser(description="Timeseek - Personal Search Engine")

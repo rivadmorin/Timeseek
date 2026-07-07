@@ -3,13 +3,13 @@ import os
 import shutil
 from collections import Counter
 from datetime import datetime
-from threading import Thread
+from threading import Thread, Lock
 
 import numpy as np
-from flask import Flask, render_template, request, send_from_directory, redirect, url_for
+from flask import Flask, render_template, request, send_from_directory, redirect, url_for, jsonify
 
-from timeseek.config import appdata_folder, screenshots_path, db_path, args
-from timeseek.database import create_db, get_all_entries, get_timestamps
+from timeseek.config import appdata_folder, screenshots_path, db_path, args, ACTIVE_SLEEP
+from timeseek.database import create_db, get_all_entries, delete_entry
 from timeseek.nlp import batch_cosine_similarity, get_embedding
 from timeseek.screenshot import record_screenshots_thread
 from timeseek.utils import human_readable_time, timestamp_to_human_readable
@@ -19,6 +19,16 @@ app = Flask(__name__)
 app.jinja_env.filters["human_readable_time"] = human_readable_time
 app.jinja_env.filters["timestamp_to_human_readable"] = timestamp_to_human_readable
 
+# Global cache for entries to speed up search and dashboard
+cached_entries = []
+cache_lock = Lock()
+
+def refresh_cache():
+    """Reloads entries from the database into the global cache."""
+    global cached_entries
+    new_entries = get_all_entries()
+    with cache_lock:
+        cached_entries = new_entries
 
 @app.route("/")
 def index():
@@ -29,10 +39,11 @@ def index():
 @app.route("/dashboard")
 def dashboard():
     """Renders the dashboard with usage statistics."""
-    entries = get_all_entries()
-    total_snapshots = len(entries)
+    with cache_lock:
+        entries = list(cached_entries)
 
-    total_time_seconds = total_snapshots * 3
+    total_snapshots = len(entries)
+    total_time_seconds = total_snapshots * ACTIVE_SLEEP
     total_time_human = human_readable_time(total_time_seconds)
 
     app_counts = Counter(e.app for e in entries if e.app)
@@ -60,7 +71,9 @@ def dashboard():
 @app.route("/timeline")
 def timeline():
     """Renders the timeline view showing all recorded moments."""
-    entries = get_all_entries()
+    with cache_lock:
+        entries = list(cached_entries)
+
     entries_json = json.dumps([
         {
             "timestamp": e.timestamp,
@@ -76,7 +89,9 @@ def timeline():
 def search():
     """Handles search queries using vectorized similarity search."""
     q = request.args.get("q", "")
-    entries = get_all_entries()
+    with cache_lock:
+        entries = list(cached_entries)
+
     apps = sorted(list(set(e.app for e in entries if e.app)))
 
     if not q:
@@ -96,6 +111,26 @@ def search():
     return render_template("search.html", entries=sorted_entries, apps=apps)
 
 
+@app.route("/delete/<int:entry_id>", methods=["POST"])
+def delete(entry_id):
+    """Deletes a specific entry, its image, and refreshes the cache."""
+    with cache_lock:
+        entry = next((e for e in cached_entries if e.id == entry_id), None)
+
+    if entry:
+        # Delete image file
+        image_path = os.path.join(screenshots_path, entry.filename)
+        if os.path.exists(image_path):
+            os.remove(image_path)
+
+        # Delete DB record
+        if delete_entry(entry_id):
+            refresh_cache()
+            return jsonify({"success": True})
+
+    return jsonify({"success": False, "error": "Entry not found"}), 404
+
+
 @app.route("/purge", methods=["POST"])
 def purge():
     """Deletes all screenshots and the database."""
@@ -107,6 +142,7 @@ def purge():
         os.remove(db_path)
 
     create_db()
+    refresh_cache()
     return redirect(url_for('dashboard'))
 
 
@@ -118,11 +154,13 @@ def serve_image(filename):
 
 if __name__ == "__main__":
     create_db()
+    refresh_cache()
 
     print(f"Appdata folder: {appdata_folder}")
     print(f"Starting server on port: {args.port}")
 
-    t = Thread(target=record_screenshots_thread, daemon=True)
+    # Start the recording thread with the cache refresh callback
+    t = Thread(target=record_screenshots_thread, args=(refresh_cache,), daemon=True)
     t.start()
 
     app.run(port=args.port)

@@ -113,3 +113,18 @@ def insert_entry(
     except sqlite3.Error as e:
         print(f"Database error during insertion: {e}")
     return last_row_id
+
+def delete_entry(entry_id: int) -> bool:
+    """
+    Deletes an entry from the database by its ID.
+    Returns True if an entry was deleted, False otherwise.
+    """
+    try:
+        with sqlite3.connect(db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM entries WHERE id = ?", (entry_id,))
+            conn.commit()
+            return cursor.rowcount > 0
+    except sqlite3.Error as e:
+        print(f"Database error during deletion: {e}")
+        return False

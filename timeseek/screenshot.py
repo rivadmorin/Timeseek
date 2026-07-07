@@ -1,12 +1,19 @@
 import os
 import time
-from typing import List, Tuple
+from typing import List, Callable, Optional
 
 import mss
 import numpy as np
 from PIL import Image
 
-from timeseek.config import screenshots_path, args
+from timeseek.config import (
+    screenshots_path,
+    args,
+    IDLE_SLEEP,
+    ACTIVE_SLEEP,
+    SCREENSHOT_QUALITY,
+    DEFAULT_SIMILARITY_THRESHOLD
+)
 from timeseek.database import insert_entry
 from timeseek.nlp import get_embedding
 from timeseek.ocr import extract_text_from_image
@@ -42,11 +49,9 @@ def mean_structured_similarity_index(
 
 
 def is_similar(
-    img1: np.ndarray, img2: np.ndarray, similarity_threshold: float = 0.95
+    img1: np.ndarray, img2: np.ndarray, similarity_threshold: float = DEFAULT_SIMILARITY_THRESHOLD
 ) -> bool:
-    """Checks if two images are similar based on MSSIM.
-    Increased threshold to 0.95 for more aggressive deduplication.
-    """
+    """Checks if two images are similar based on MSSIM."""
     similarity: float = mean_structured_similarity_index(img1, img2)
     return similarity >= similarity_threshold
 
@@ -72,28 +77,22 @@ def take_screenshots() -> List[np.ndarray]:
     return screenshots
 
 
-def record_screenshots_thread() -> None:
-    """Continuously records screenshots and stores relevant data.
-    Optimized to use adaptive sleep intervals.
-    """
+def record_screenshots_thread(on_new_entry: Optional[Callable] = None) -> None:
+    """Continuously records screenshots and stores relevant data."""
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
     last_screenshots: List[np.ndarray] = take_screenshots()
 
-    # Use adaptive interval: sleep longer if inactive
-    idle_sleep = 5
-    active_sleep = 3
-
     while True:
         if not is_user_active():
-            time.sleep(idle_sleep)
+            time.sleep(IDLE_SLEEP)
             continue
 
         current_screenshots: List[np.ndarray] = take_screenshots()
 
         if len(last_screenshots) != len(current_screenshots):
             last_screenshots = current_screenshots
-            time.sleep(active_sleep)
+            time.sleep(ACTIVE_SLEEP)
             continue
 
         for i, current_screenshot in enumerate(current_screenshots):
@@ -106,8 +105,7 @@ def record_screenshots_thread() -> None:
                 filename = f"{timestamp}_{i}.webp"
                 filepath = os.path.join(screenshots_path, filename)
 
-                # Save with slightly higher compression for storage efficiency
-                image.save(filepath, format="webp", quality=80)
+                image.save(filepath, format="webp", quality=SCREENSHOT_QUALITY)
 
                 text: str = extract_text_from_image(current_screenshot)
                 if text.strip():
@@ -122,5 +120,7 @@ def record_screenshots_thread() -> None:
                         active_window_title,
                         filename,
                     )
+                    if on_new_entry:
+                        on_new_entry()
 
-        time.sleep(active_sleep)
+        time.sleep(ACTIVE_SLEEP)
