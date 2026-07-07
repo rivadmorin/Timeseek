@@ -5,6 +5,7 @@ _predictor = None
 
 
 def get_predictor():
+    """Initializes and returns the OCR predictor."""
     global _predictor
     if _predictor is None:
         _predictor = ocr_predictor(

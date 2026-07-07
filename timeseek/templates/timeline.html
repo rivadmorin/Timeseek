@@ -43,8 +43,8 @@
         right: 24px;
         pointer-events: none;
         display: flex;
-        flex-direction: column;
-        gap: 8px;
+        justify-content: space-between;
+        align-items: flex-start;
     }
 
     .app-info-pill {
@@ -72,6 +72,31 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+    }
+
+    .header-actions {
+        pointer-events: auto;
+        display: flex;
+        gap: 8px;
+    }
+
+    .action-btn {
+        background-color: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(8px);
+        color: white;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+
+    .action-btn:hover {
+        background-color: var(--md-sys-color-error);
     }
 
     .control-panel {
@@ -127,6 +152,11 @@
                     <span class="window-title-label" id="winTitle">{{ entries[0].title }}</span>
                 </div>
             </div>
+            <div class="header-actions">
+                <div class="action-btn" onclick="deleteCurrentEntry()">
+                    <span class="material-symbols-rounded">delete</span>
+                </div>
+            </div>
         </div>
         <div class="viewer-image-container">
             <img id="timestampImage" src="/static/{{ entries[0].filename }}" alt="Snapshot" class="viewer-image">
@@ -146,7 +176,18 @@
 </div>
 
 <script>
-    const data = {{ entries_json|safe }};
+    const data = [
+        {% for entry in entries %}
+        {
+            "id": {{ entry.id }},
+            "timestamp": {{ entry.timestamp }},
+            "filename": "{{ entry.filename }}",
+            "app": "{{ entry.app | replace('"', '\"') }}",
+            "title": "{{ entry.title | replace('"', '\"') }}"
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ];
+
     const slider = document.getElementById('discreteSlider');
     const sliderValue = document.getElementById('sliderValue');
     const timestampImage = document.getElementById('timestampImage');
@@ -163,6 +204,27 @@
         appNameLabel.textContent = item.app;
         winTitleLabel.textContent = item.title;
     });
+
+    async function deleteCurrentEntry() {
+        const index = parseInt(slider.value);
+        const item = data[index];
+
+        if (!confirm('Are you sure you want to delete this moment?')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/delete/${item.id}`, { method: 'POST' });
+            if (response.ok) {
+                location.reload();
+            } else {
+                alert('Failed to delete entry');
+            }
+        } catch (error) {
+            console.error('Error deleting entry:', error);
+            alert('Error deleting entry');
+        }
+    }
 </script>
 {% else %}
 <div class="empty-state">
