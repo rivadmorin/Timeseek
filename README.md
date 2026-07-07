@@ -24,6 +24,17 @@ We've completely overhauled the UI using **Google Material Design 3 (M3)** princ
 
 Timeseek captures your digital history through regularly taken snapshots. The text and images are analyzed and made searchable locally on your machine.
 
+
+## 📸 UI Gallery
+
+### Semantic Search
+![Semantic Search View](images/search_view.png)
+*Advanced local OCR and vector search results in a modern M3 grid.*
+
+### Immersive Timeline
+![Timeline View](images/timeline_view.png)
+*Revisit past digital activities via our new M3 Timeline scrubber.*
+
 ## Features
 
 - **Time Travel**: Revisit past digital activities via our new M3 Timeline scrubber.
