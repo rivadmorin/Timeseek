@@ -13,16 +13,65 @@
         background-color: var(--md-sys-color-surface-container-low);
         border-radius: var(--md-sys-shape-corner-extra-large);
         display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        border: 1px solid var(--md-sys-color-outline-variant);
+        position: relative;
+    }
+
+    .viewer-image-container {
+        flex: 1;
+        display: flex;
         align-items: center;
         justify-content: center;
         overflow: hidden;
-        border: 1px solid var(--md-sys-color-outline-variant);
+        padding: 16px;
     }
 
     .viewer-image {
         max-width: 100%;
         max-height: 100%;
         object-fit: contain;
+        border-radius: var(--md-sys-shape-corner-large);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+
+    .viewer-overlay {
+        position: absolute;
+        top: 24px;
+        left: 24px;
+        right: 24px;
+        pointer-events: none;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .app-info-pill {
+        background-color: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(8px);
+        color: white;
+        padding: 8px 16px;
+        border-radius: var(--md-sys-shape-corner-full);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        width: fit-content;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+
+    .app-name-label {
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .window-title-label {
+        font-size: 12px;
+        opacity: 0.8;
+        max-width: 300px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .control-panel {
@@ -67,29 +116,42 @@
     }
 </style>
 
-{% if timestamps|length > 0 %}
+{% if entries|length > 0 %}
 <div class="timeline-container">
     <div class="viewer-card">
-        <img id="timestampImage" src="/static/{{ timestamps[0].filename }}" alt="Snapshot" class="viewer-image">
+        <div class="viewer-overlay">
+            <div class="app-info-pill">
+                <span class="material-symbols-rounded">category</span>
+                <div style="display: flex; flex-direction: column;">
+                    <span class="app-name-label" id="appName">{{ entries[0].app }}</span>
+                    <span class="window-title-label" id="winTitle">{{ entries[0].title }}</span>
+                </div>
+            </div>
+        </div>
+        <div class="viewer-image-container">
+            <img id="timestampImage" src="/static/{{ entries[0].filename }}" alt="Snapshot" class="viewer-image">
+        </div>
     </div>
 
     <div class="control-panel">
         <div class="timestamp-label" id="sliderValue">
-            {{ timestamps[0].timestamp | timestamp_to_human_readable }}
+            {{ entries[0].timestamp | timestamp_to_human_readable }}
         </div>
         <div class="slider-wrapper">
             <span class="material-symbols-rounded">history</span>
-            <input type="range" id="discreteSlider" min="0" max="{{timestamps|length - 1}}" step="1" value="0">
+            <input type="range" id="discreteSlider" min="0" max="{{entries|length - 1}}" step="1" value="0">
             <span class="material-symbols-rounded">schedule</span>
         </div>
     </div>
 </div>
 
 <script>
-    const data = {{ timestamps|tojson }};
+    const data = {{ entries_json|safe }};
     const slider = document.getElementById('discreteSlider');
     const sliderValue = document.getElementById('sliderValue');
     const timestampImage = document.getElementById('timestampImage');
+    const appNameLabel = document.getElementById('appName');
+    const winTitleLabel = document.getElementById('winTitle');
 
     slider.addEventListener('input', function() {
         const index = parseInt(slider.value);
@@ -98,6 +160,8 @@
         const date = new Date(item.timestamp * 1000);
         sliderValue.textContent = date.toLocaleString();
         timestampImage.src = `/static/${item.filename}`;
+        appNameLabel.textContent = item.app;
+        winTitleLabel.textContent = item.title;
     });
 </script>
 {% else %}

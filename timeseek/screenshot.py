@@ -42,9 +42,11 @@ def mean_structured_similarity_index(
 
 
 def is_similar(
-    img1: np.ndarray, img2: np.ndarray, similarity_threshold: float = 0.9
+    img1: np.ndarray, img2: np.ndarray, similarity_threshold: float = 0.95
 ) -> bool:
-    """Checks if two images are similar based on MSSIM."""
+    """Checks if two images are similar based on MSSIM.
+    Increased threshold to 0.95 for more aggressive deduplication.
+    """
     similarity: float = mean_structured_similarity_index(img1, img2)
     return similarity >= similarity_threshold
 
@@ -71,21 +73,27 @@ def take_screenshots() -> List[np.ndarray]:
 
 
 def record_screenshots_thread() -> None:
-    """Continuously records screenshots and stores relevant data."""
+    """Continuously records screenshots and stores relevant data.
+    Optimized to use adaptive sleep intervals.
+    """
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
     last_screenshots: List[np.ndarray] = take_screenshots()
 
+    # Use adaptive interval: sleep longer if inactive
+    idle_sleep = 5
+    active_sleep = 3
+
     while True:
         if not is_user_active():
-            time.sleep(3)
+            time.sleep(idle_sleep)
             continue
 
         current_screenshots: List[np.ndarray] = take_screenshots()
 
         if len(last_screenshots) != len(current_screenshots):
             last_screenshots = current_screenshots
-            time.sleep(3)
+            time.sleep(active_sleep)
             continue
 
         for i, current_screenshot in enumerate(current_screenshots):
@@ -97,7 +105,9 @@ def record_screenshots_thread() -> None:
                 timestamp = int(time.time())
                 filename = f"{timestamp}_{i}.webp"
                 filepath = os.path.join(screenshots_path, filename)
-                image.save(filepath, format="webp", lossless=True)
+
+                # Save with slightly higher compression for storage efficiency
+                image.save(filepath, format="webp", quality=80)
 
                 text: str = extract_text_from_image(current_screenshot)
                 if text.strip():
@@ -113,4 +123,4 @@ def record_screenshots_thread() -> None:
                         filename,
                     )
 
-        time.sleep(3)
+        time.sleep(active_sleep)

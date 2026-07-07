@@ -34,3 +34,8 @@ Format:
 - **Learning:** For better UX, visual preferences like themes should be persisted across sessions. The toggle icon should ideally represent the *action* or the *next state* to maintain intuitive flow.
 - **Action/Rule:** Added `localStorage` persistence to the theme toggle and aligned the icon to suggest the alternative mode. Improved CSS transitions and focus states for M3 components.
 - **Verify Command:** Manual verification of theme persistence after page reload.
+
+## [2026-07-06] M3 Dashboard & Filter UI
+- **Design**: Created a systematic "Daily Dashboard" following Material Design 3 dark theme principles.
+- **UX**: Improved search results with semantic labels and "App Badges" for quick recognition.
+- **Aesthetics**: Used tonal layers and blur effects for the timeline overlay to maintain a "clean and reliable" feel.

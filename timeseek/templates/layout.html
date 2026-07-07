@@ -8,7 +8,6 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap">
   <style>
     :root {
-      /* M3 Tokens (Simplified) */
       --md-sys-color-primary: #D0BCFF;
       --md-sys-color-on-primary: #381E72;
       --md-sys-color-primary-container: #4F378B;
@@ -24,9 +23,14 @@
       --md-sys-color-surface-container: #211F26;
       --md-sys-color-surface-container-high: #2B2930;
       --md-sys-color-surface-container-highest: #36343B;
+      --md-sys-color-error: #F2B8B5;
+      --md-sys-color-on-error: #601410;
+      --md-sys-color-error-container: #8C1D18;
+      --md-sys-color-on-error-container: #F9DEDC;
       --md-sys-shape-corner-full: 1000px;
       --md-sys-shape-corner-extra-large: 28px;
       --md-sys-shape-corner-large: 16px;
+      --md-sys-shape-corner-medium: 12px;
     }
 
     [data-theme="light"] {
@@ -45,6 +49,10 @@
       --md-sys-color-surface-container: #F3EDF7;
       --md-sys-color-surface-container-high: #ECE6F0;
       --md-sys-color-surface-container-highest: #E6E0E9;
+      --md-sys-color-error: #B3261E;
+      --md-sys-color-on-error: #FFFFFF;
+      --md-sys-color-error-container: #F9DEDC;
+      --md-sys-color-on-error-container: #410E0B;
     }
 
     body {
@@ -178,7 +186,11 @@
 </head>
 <body>
   <nav class="nav-rail">
-    <a href="/search" class="nav-item {{ 'active' if request.path == '/search' or request.path == '/' }}">
+    <a href="/dashboard" class="nav-item {{ 'active' if request.path == '/dashboard' or request.path == '/' }}">
+      <span class="material-symbols-rounded">dashboard</span>
+      <span class="label">Home</span>
+    </a>
+    <a href="/search" class="nav-item {{ 'active' if request.path == '/search' }}">
       <span class="material-symbols-rounded">search</span>
       <span class="label">Search</span>
     </a>
@@ -194,12 +206,18 @@
 
   <main>
     <header>
+      {% if request.path == '/search' %}
       <div class="search-container">
         <form action="/search" method="get">
           <span class="material-symbols-rounded search-icon">search</span>
           <input type="text" name="q" class="search-input" placeholder="Search your recall..." value="{{ request.args.get('q', '') }}" autocomplete="off">
         </form>
       </div>
+      {% else %}
+      <div style="font-size: 24px; font-weight: 500; flex: 1; text-align: center;">
+          {% if request.path == '/dashboard' or request.path == '/' %} Daily Dashboard {% elif request.path == '/timeline' %} Timeline Viewer {% endif %}
+      </div>
+      {% endif %}
     </header>
 
     <div class="content-wrapper">
@@ -215,13 +233,10 @@
       const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
 
       html.setAttribute('data-theme', newTheme);
-      // If it is dark now, the ICON should show "light_mode" to suggest switching to light
-      // If it is light now, the ICON should show "dark_mode" to suggest switching to dark
       icon.textContent = newTheme === 'dark' ? 'light_mode' : 'dark_mode';
       localStorage.setItem('theme', newTheme);
     }
 
-    // Load saved theme
     const savedTheme = localStorage.getItem('theme') || 'dark';
     document.documentElement.setAttribute('data-theme', savedTheme);
     document.getElementById('theme-icon').textContent = savedTheme === 'dark' ? 'light_mode' : 'dark_mode';
