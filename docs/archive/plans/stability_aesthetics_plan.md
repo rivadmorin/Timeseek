@@ -26,25 +26,25 @@ updated: 2026-07-06
 
 - [ ] Task 1: Bug Hunter 🐛 - Fix Database Schema and insert_entry mismatch
   - **Read Boundary:**
-    - [openrecall/database.py](file:///app/openrecall/database.py)
-    - [openrecall/screenshot.py](file:///app/openrecall/screenshot.py)
+    - [timeseek/database.py](file:///app/timeseek/database.py)
+    - [timeseek/screenshot.py](file:///app/timeseek/screenshot.py)
   - **Write/Modify Boundary:**
-    - [openrecall/database.py](file:///app/openrecall/database.py)
+    - [timeseek/database.py](file:///app/timeseek/database.py)
   - **Depends On:** None
   - **Verification & Testing:**
-    - Command: `python3 -c "from openrecall.database import create_db; create_db()"`
+    - Command: `python3 -c "from timeseek.database import create_db; create_db()"`
     - Success Criteria: Database schema contains `filename` column.
   - **Target Staging Memory:** `docs/staged/stability_aesthetics-bughunter-06-07-2026-t1.md`
 
 - [ ] Task 2: Bug Hunter 🐛 - Fix broken UI image paths in templates
   - **Read Boundary:**
-    - [openrecall/database.py](file:///app/openrecall/database.py)
-    - [openrecall/templates/timeline.html](file:///app/openrecall/templates/timeline.html)
-    - [openrecall/templates/search.html](file:///app/openrecall/templates/search.html)
+    - [timeseek/database.py](file:///app/timeseek/database.py)
+    - [timeseek/templates/timeline.html](file:///app/timeseek/templates/timeline.html)
+    - [timeseek/templates/search.html](file:///app/timeseek/templates/search.html)
   - **Write/Modify Boundary:**
-    - [openrecall/database.py](file:///app/openrecall/database.py)
-    - [openrecall/templates/timeline.html](file:///app/openrecall/templates/timeline.html)
-    - [openrecall/templates/search.html](file:///app/openrecall/templates/search.html)
+    - [timeseek/database.py](file:///app/timeseek/database.py)
+    - [timeseek/templates/timeline.html](file:///app/timeseek/templates/timeline.html)
+    - [timeseek/templates/search.html](file:///app/timeseek/templates/search.html)
   - **Depends On:** Task 1
   - **Verification & Testing:**
     - Manual: Verify images display correctly in both Timeline and Search views.
@@ -53,22 +53,22 @@ updated: 2026-07-06
 
 - [ ] Task 3: Inspector 🧐 - Centralize configuration (Port) and Cleanup
   - **Read Boundary:**
-    - [openrecall/app.py](file:///app/openrecall/app.py)
-    - [openrecall/config.py](file:///app/openrecall/config.py)
+    - [timeseek/app.py](file:///app/timeseek/app.py)
+    - [timeseek/config.py](file:///app/timeseek/config.py)
   - **Write/Modify Boundary:**
-    - [openrecall/app.py](file:///app/openrecall/app.py)
-    - [openrecall/config.py](file:///app/openrecall/config.py)
+    - [timeseek/app.py](file:///app/timeseek/app.py)
+    - [timeseek/config.py](file:///app/timeseek/config.py)
   - **Depends On:** Task 2
   - **Verification & Testing:**
-    - Command: `python3 -m py_compile openrecall/app.py`
+    - Command: `python3 -m py_compile timeseek/app.py`
     - Success Criteria: Port is read from `config.py`.
   - **Target Staging Memory:** `docs/staged/stability_aesthetics-inspector-06-07-2026-t3.md`
 
 - [ ] Task 4: Taste 💅 - Refine UI Aesthetics and Theme Toggle
   - **Read Boundary:**
-    - [openrecall/templates/layout.html](file:///app/openrecall/templates/layout.html)
+    - [timeseek/templates/layout.html](file:///app/timeseek/templates/layout.html)
   - **Write/Modify Boundary:**
-    - [openrecall/templates/layout.html](file:///app/openrecall/templates/layout.html)
+    - [timeseek/templates/layout.html](file:///app/timeseek/templates/layout.html)
   - **Depends On:** Task 3
   - **Verification & Testing:**
     - Manual: Verify theme toggle icon correctly represents the *next* or *current* state intuitively.

@@ -17,17 +17,17 @@ Format:
 ## 06-07-2026 - Centralized Port Configuration and Documentation Cleanup
 - **Tags:** #hygiene #config #python #refactor
 - **Level:** 🟢 INFO
-- **Scope:** [openrecall/app.py](file:///app/openrecall/app.py), [openrecall/config.py](file:///app/openrecall/config.py)
+- **Scope:** [timeseek/app.py](file:///app/timeseek/app.py), [timeseek/config.py](file:///app/timeseek/config.py)
 - **Notify Agents:** @Inspector @Orchestrator
 - **Symptom:** Port was hardcoded in `app.py`, making it difficult for users to change via CLI.
 - **Root Cause:** Lack of centralized configuration management for runtime parameters.
 - **Learning:** CLI arguments should be parsed in a central `config.py` and made available globally to ensure consistency across the application.
 - **Action/Rule:** Added `--port` argument to `config.py` and updated `app.py` to respect it. Also added docstrings to main routes.
-- **Verify Command:** `python3 -m py_compile openrecall/app.py`
+- **Verify Command:** `python3 -m py_compile timeseek/app.py`
 ## 06-07-2026 - Deep Codebase Discovery & Data Flow Audit
 - **Tags:** #architecture #dataflow #ocr #nlp #sqlite
 - **Level:** 🟢 INFO
-- **Scope:** [openrecall/](file:///app/openrecall/)
+- **Scope:** [timeseek/](file:///app/timeseek/)
 - **Notify Agents:** @Inspector @Scribe @Orchestrator
 - **Symptom:** N/A (Documentation & Audit)
 - **Root Cause:** Need for a centralized technical understanding of the "Screenshot -> OCR -> NLP -> DB" pipeline.

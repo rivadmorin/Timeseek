@@ -33,10 +33,10 @@ updated: 2024-05-25
 
 - [x] Task 2: Bug Hunter 🐛 - Fix Embedding Type Mismatch in app.py
   - **Read Boundary:**
-    - [openrecall/app.py](file:///app/openrecall/app.py)
-    - [openrecall/database.py](file:///app/openrecall/database.py)
+    - [timeseek/app.py](file:///app/timeseek/app.py)
+    - [timeseek/database.py](file:///app/timeseek/database.py)
   - **Write/Modify Boundary:**
-    - [openrecall/app.py](file:///app/openrecall/app.py)
+    - [timeseek/app.py](file:///app/timeseek/app.py)
   - **Verification & Testing:**
     - Command: Manual inspection and ensuring no type mismatch.
     - Success Criteria: `embeddings` in `app.py` are correctly derived from `Entry` objects.

@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
-from openrecall.app import app
-from openrecall.database import Entry
+from timeseek.app import app
+from timeseek.database import Entry
 
 @pytest.fixture
 def client():
@@ -31,8 +31,8 @@ def test_search_with_query(client, mocker):
         MockEntry(1, "App1", "Title1", "Text1", 100, np.array([1, 0, 0], dtype=np.float32)),
         MockEntry(2, "App2", "Title2", "Text2", 200, np.array([0, 1, 0], dtype=np.float32))
     ]
-    mocker.patch('openrecall.app.get_all_entries', return_value=mock_entries)
-    mocker.patch('openrecall.app.get_embedding', return_value=np.array([1, 0, 0], dtype=np.float32))
+    mocker.patch('timeseek.app.get_all_entries', return_value=mock_entries)
+    mocker.patch('timeseek.app.get_embedding', return_value=np.array([1, 0, 0], dtype=np.float32))
 
     response = client.get('/search?q=test')
     assert response.status_code == 200

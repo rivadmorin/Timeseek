@@ -17,7 +17,7 @@ Format:
 ## 25-05-2024 - Fixed Embedding Type Mismatch in app.py
 - **Tags:** #bug #logic #python #flask
 - **Level:** 🔴 CRITICAL
-- **Scope:** [openrecall/app.py](file:///app/openrecall/app.py)
+- **Scope:** [timeseek/app.py](file:///app/timeseek/app.py)
 - **Notify Agents:** @BugHunter @Scholar
 - **Symptom:** Search results were incorrectly ordered or failed due to `np.frombuffer` with wrong dtype (`float64` instead of `float32`) and attempting to buffer an object that was already a numpy array.
 - **Root Cause:** `get_all_entries()` already returns deserialized numpy arrays, but `app.py` tried to deserialize them again with the wrong type.
@@ -61,17 +61,17 @@ Format:
 ## 06-07-2026 - Fixed Database Schema and insert_entry Mismatch
 - **Tags:** #bug #database #sqlite #schema
 - **Level:** 🔴 CRITICAL
-- **Scope:** [openrecall/database.py](file:///app/openrecall/database.py)
+- **Scope:** [timeseek/database.py](file:///app/timeseek/database.py)
 - **Notify Agents:** @BugHunter @Orchestrator
 - **Symptom:** Application crashed during screenshot recording because `insert_entry` was called with 6 arguments but only accepted 5. Additionally, the UI could not reliably find images because the filename was not stored.
 - **Root Cause:** Database schema was missing the `filename` column and the `insert_entry` function signature was outdated compared to its usage in `screenshot.py`.
 - **Learning:** Schema migrations should be handled defensively in `create_db` using `PRAGMA table_info` to ensure new columns are added without wiping existing data.
 - **Action/Rule:** Always sync `database.py` signatures with caller logic in `screenshot.py` or `app.py`.
-- **Verify Command:** `python3 -c "from openrecall.database import create_db; create_db()"`
+- **Verify Command:** `python3 -c "from timeseek.database import create_db; create_db()"`
 ## 06-07-2026 - Fixed Broken UI Image Paths in Templates
 - **Tags:** #bug #frontend #jinja2 #ui
 - **Level:** 🟢 INFO
-- **Scope:** [openrecall/templates/timeline.html](file:///app/openrecall/templates/timeline.html), [openrecall/templates/search.html](file:///app/openrecall/templates/search.html), [openrecall/database.py](file:///app/openrecall/database.py)
+- **Scope:** [timeseek/templates/timeline.html](file:///app/timeseek/templates/timeline.html), [timeseek/templates/search.html](file:///app/timeseek/templates/search.html), [timeseek/database.py](file:///app/timeseek/database.py)
 - **Notify Agents:** @BugHunter @Orchestrator
 - **Symptom:** Images failed to load in Timeline and Search views, appearing as broken links.
 - **Root Cause:** The UI was hardcoded to expect `timestamp.webp`, but the backend saves files as `timestamp_monitorindex.webp` to support multi-monitor setups.

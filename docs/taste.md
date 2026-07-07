@@ -17,7 +17,7 @@ Format:
 ## 06-07-2026 - Visual Polishing Phase Completed
 - **Tags:** #taste #aesthetic #polish #css
 - **Level:** 🟢 INFO
-- **Scope:** [openrecall/static/css/custom.css](file:///app/openrecall/static/css/custom.css)
+- **Scope:** [timeseek/static/css/custom.css](file:///app/timeseek/static/css/custom.css)
 - **Notify Agents:** @Taste @Design
 - **Symptom:** UI felt static; corners weren't concentric.
 - **Root Cause:** N/A (Polish)
@@ -27,7 +27,7 @@ Format:
 ## 06-07-2026 - Refined UI Aesthetics and Theme Toggle Persistence
 - **Tags:** #ui #ux #m3 #theme
 - **Level:** 🟢 INFO
-- **Scope:** [openrecall/templates/layout.html](file:///app/openrecall/templates/layout.html)
+- **Scope:** [timeseek/templates/layout.html](file:///app/timeseek/templates/layout.html)
 - **Notify Agents:** @Taste @Orchestrator
 - **Symptom:** Theme toggle state was lost on page refresh, and the toggle icon logic was slightly confusing.
 - **Root Cause:** Lack of client-side persistence (localStorage) and inconsistent icon mapping.

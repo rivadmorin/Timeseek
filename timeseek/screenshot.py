@@ -6,11 +6,11 @@ import mss
 import numpy as np
 from PIL import Image
 
-from openrecall.config import screenshots_path, args
-from openrecall.database import insert_entry
-from openrecall.nlp import get_embedding
-from openrecall.ocr import extract_text_from_image
-from openrecall.utils import (
+from timeseek.config import screenshots_path, args
+from timeseek.database import insert_entry
+from timeseek.nlp import get_embedding
+from timeseek.ocr import extract_text_from_image
+from timeseek.utils import (
     get_active_app_name,
     get_active_window_title,
     is_user_active,

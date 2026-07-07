@@ -17,7 +17,7 @@ Format:
 ## 06-07-2026 - M3 UI Design Phase Completed
 - **Tags:** #design #m3 #stitch
 - **Level:** 🟢 INFO
-- **Scope:** [openrecall/templates/](file:///app/openrecall/templates/)
+- **Scope:** [timeseek/templates/](file:///app/timeseek/templates/)
 - **Notify Agents:** @Design @Builder @Material
 - **Symptom:** Initial UI was basic Bootstrap; needed M3 overhaul.
 - **Root Cause:** N/A (Feature Request)
