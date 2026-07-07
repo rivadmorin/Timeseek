@@ -99,3 +99,9 @@ Format:
 - **Learning:** Playwright can be used in the agent environment to capture live application state for documentation.
 - **Action/Rule:** Always include screenshots when making significant UI/UX changes to ensure clarity for users.
 - **Verify Command:** `grep "UI Gallery" README.md`
+# Taste 💅 Learning: M3 Refinement & Visual Rhythm
+- **Plan ID:** ui_refinement_and_verification
+- **Agent:** Taste 💅
+- **Learning:** Hardcoded M3 tokens in templates should be moved to `m3-tokens.css` for consistency across themes. Using `opacity` on primary containers for heatmap levels creates a more cohesive visual rhythm than hardcoded hex values. Smooth transitions on the theme toggle icon (`transform`) improve perceived quality.
+- **Action/Rule:** Always link `m3-tokens.css` in the layout and use CSS variables for semantic coloring.
+- **Verify Command:** Manual inspection of `layout.html` and `custom.css`.
