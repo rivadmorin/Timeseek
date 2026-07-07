@@ -12,7 +12,8 @@ from timeseek.config import (
     IDLE_SLEEP,
     ACTIVE_SLEEP,
     SCREENSHOT_QUALITY,
-    DEFAULT_SIMILARITY_THRESHOLD
+    DEFAULT_SIMILARITY_THRESHOLD,
+    BLACKLISTED_APPS
 )
 from timeseek.database import insert_entry
 from timeseek.nlp import get_embedding
@@ -88,6 +89,13 @@ def record_screenshots_thread(on_new_entry: Optional[Callable] = None) -> None:
             time.sleep(IDLE_SLEEP)
             continue
 
+        active_app_name: str = get_active_app_name() or "Unknown App"
+
+        # Privacy Filter: Skip recording if active app is blacklisted
+        if active_app_name in BLACKLISTED_APPS:
+            time.sleep(ACTIVE_SLEEP)
+            continue
+
         current_screenshots: List[np.ndarray] = take_screenshots()
 
         if len(last_screenshots) != len(current_screenshots):
@@ -110,7 +118,6 @@ def record_screenshots_thread(on_new_entry: Optional[Callable] = None) -> None:
                 text: str = extract_text_from_image(current_screenshot)
                 if text.strip():
                     embedding: np.ndarray = get_embedding(text)
-                    active_app_name: str = get_active_app_name() or "Unknown App"
                     active_window_title: str = get_active_window_title() or "Unknown Title"
                     insert_entry(
                         text,

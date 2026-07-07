@@ -8,8 +8,8 @@ from threading import Thread, Lock
 import numpy as np
 from flask import Flask, render_template, request, send_from_directory, redirect, url_for, jsonify
 
-from timeseek.config import appdata_folder, screenshots_path, db_path, args, ACTIVE_SLEEP
-from timeseek.database import create_db, get_all_entries, delete_entry
+from timeseek.config import appdata_folder, screenshots_path, db_path, args, ACTIVE_SLEEP, RETENTION_DAYS
+from timeseek.database import create_db, get_all_entries, delete_entry, update_entry_notes, prune_old_data
 from timeseek.nlp import batch_cosine_similarity, get_embedding
 from timeseek.screenshot import record_screenshots_thread
 from timeseek.utils import human_readable_time, timestamp_to_human_readable
@@ -79,7 +79,8 @@ def timeline():
             "timestamp": e.timestamp,
             "filename": e.filename,
             "app": e.app,
-            "title": e.title
+            "title": e.title,
+            "notes": e.notes
         } for e in entries
     ])
     return render_template("timeline.html", entries=entries, entries_json=entries_json)
@@ -87,18 +88,24 @@ def timeline():
 
 @app.route("/search")
 def search():
-    """Handles search queries using vectorized similarity search."""
+    """Handles search queries using vectorized similarity search with optional filtering."""
     q = request.args.get("q", "")
+    app_filter = request.args.get("app", "")
+
     with cache_lock:
         entries = list(cached_entries)
 
     apps = sorted(list(set(e.app for e in entries if e.app)))
 
+    # Apply app filter first if present
+    if app_filter:
+        entries = [e for e in entries if e.app == app_filter]
+
     if not q:
-        return render_template("search.html", entries=entries, apps=apps)
+        return render_template("search.html", entries=entries, apps=apps, current_app=app_filter)
 
     if not entries:
-         return render_template("search.html", entries=[], apps=[])
+         return render_template("search.html", entries=[], apps=[], current_app=app_filter)
 
     # Optimization: Use vectorized matrix multiplication for similarity search
     query_embedding = get_embedding(q)
@@ -108,7 +115,17 @@ def search():
     indices = np.argsort(similarities)[::-1]
     sorted_entries = [entries[i] for i in indices]
 
-    return render_template("search.html", entries=sorted_entries, apps=apps)
+    return render_template("search.html", entries=sorted_entries, apps=apps, current_app=app_filter)
+
+
+@app.route("/update_note/<int:entry_id>", methods=["POST"])
+def update_note(entry_id):
+    """Updates the notes for a specific entry and refreshes the cache."""
+    notes = request.json.get("notes", "")
+    if update_entry_notes(entry_id, notes):
+        refresh_cache()
+        return jsonify({"success": True})
+    return jsonify({"success": False, "error": "Entry not found"}), 404
 
 
 @app.route("/delete/<int:entry_id>", methods=["POST"])
@@ -154,6 +171,10 @@ def serve_image(filename):
 
 if __name__ == "__main__":
     create_db()
+
+    # Run auto-pruning on startup
+    prune_old_data(RETENTION_DAYS)
+
     refresh_cache()
 
     print(f"Appdata folder: {appdata_folder}")

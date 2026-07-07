@@ -13,11 +13,11 @@
         gap: 8px;
         overflow-x: auto;
         padding-bottom: 8px;
-        scrollbar-width: none; /* Firefox */
+        scrollbar-width: none;
     }
 
     .filter-chips::-webkit-scrollbar {
-        display: none; /* Chrome, Safari, Opera */
+        display: none;
     }
 
     .chip {
@@ -31,6 +31,11 @@
         cursor: pointer;
         white-space: nowrap;
         transition: all 0.2s;
+        text-decoration: none;
+    }
+
+    .chip:hover {
+        background-color: var(--md-sys-color-surface-container-highest);
     }
 
     .chip.active {
@@ -52,8 +57,7 @@
         cursor: pointer;
         transition: transform 0.2s, background-color 0.2s;
         border: 1px solid transparent;
-        display: flex;
-        flex-direction: column;
+        display: flex; flex-direction: column;
     }
 
     .card:hover {
@@ -177,6 +181,7 @@
 
     .dialog-body {
         padding: 0 24px 24px 24px;
+        overflow-y: auto;
     }
 
     .dialog-body img {
@@ -187,14 +192,20 @@
         border-radius: var(--md-sys-shape-corner-large);
     }
 
+    .dialog-section-label {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--md-sys-color-primary);
+        margin: 16px 0 8px 0;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
     .dialog-text-content {
-        margin-top: 16px;
         padding: 16px;
         background-color: var(--md-sys-color-surface-container-low);
         border-radius: var(--md-sys-shape-corner-medium);
         font-size: 14px;
-        max-height: 150px;
-        overflow-y: auto;
         white-space: pre-wrap;
     }
 </style>
@@ -202,9 +213,9 @@
 <div class="search-header">
     {% if apps %}
     <div class="filter-chips">
-        <div class="chip active" onclick="filterByApp('all', this)">All Apps</div>
+        <a href="/search?q={{ request.args.get('q', '') }}" class="chip {{ 'active' if not current_app }}">All Apps</a>
         {% for app_name in apps %}
-        <div class="chip" onclick="filterByApp('{{ app_name }}', this)">{{ app_name }}</div>
+        <a href="/search?q={{ request.args.get('q', '') }}&app={{ app_name }}" class="chip {{ 'active' if current_app == app_name }}">{{ app_name }}</a>
         {% endfor %}
     </div>
     {% endif %}
@@ -212,7 +223,7 @@
 
 <div class="grid" id="resultsGrid">
     {% for entry in entries %}
-    <div class="card" data-app="{{ entry.app }}" onclick="openModal('modal-{{ entry.id }}')">
+    <div class="card" onclick="openModal('modal-{{ entry.id }}')">
         <div class="card-image-container">
             <img src="/static/{{ entry.filename }}" alt="Snapshot" class="card-image" loading="lazy">
             <div class="app-badge">{{ entry.app }}</div>
@@ -239,7 +250,14 @@
             </div>
             <div class="dialog-body">
                 <img src="/static/{{ entry.filename }}" alt="Full Image">
+
+                {% if entry.notes %}
+                <div class="dialog-section-label">Notes</div>
+                <div class="dialog-text-content">{{ entry.notes }}</div>
+                {% endif %}
+
                 {% if entry.text %}
+                <div class="dialog-section-label">OCR Text</div>
                 <div class="dialog-text-content">{{ entry.text }}</div>
                 {% endif %}
             </div>
@@ -273,20 +291,6 @@
             console.error('Error deleting entry:', error);
             alert('Error deleting entry');
         }
-    }
-
-    function filterByApp(appName, chipElement) {
-        document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-        chipElement.classList.add('active');
-
-        const cards = document.querySelectorAll('.card');
-        cards.forEach(card => {
-            if (appName === 'all' || card.getAttribute('data-app') === appName) {
-                card.style.display = 'flex';
-            } else {
-                card.style.display = 'none';
-            }
-        });
     }
 </script>
 {% endblock %}

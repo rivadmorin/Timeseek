@@ -6,13 +6,13 @@ from typing import Any, List, Optional, Tuple
 from timeseek.config import db_path
 
 # Define the structure of a database entry using namedtuple
-Entry = namedtuple("Entry", ["id", "app", "title", "text", "timestamp", "embedding", "filename"])
+Entry = namedtuple("Entry", ["id", "app", "title", "text", "timestamp", "embedding", "filename", "notes"])
 
 
 def create_db() -> None:
     """
     Creates the SQLite database and the 'entries' table if they don't exist.
-    Also handles schema migrations (adding 'filename' column).
+    Also handles schema migrations (adding 'filename' and 'notes' columns).
     """
     try:
         with sqlite3.connect(db_path) as conn:
@@ -27,12 +27,17 @@ def create_db() -> None:
                        embedding BLOB
                    )"""
             )
-            # Migration: Add filename column if it doesn't exist
+            # Migration: Add columns if they don't exist
             cursor.execute("PRAGMA table_info(entries)")
             columns = [column[1] for column in cursor.fetchall()]
+
             if "filename" not in columns:
                 print("Migrating database: Adding 'filename' column.")
                 cursor.execute("ALTER TABLE entries ADD COLUMN filename TEXT")
+
+            if "notes" not in columns:
+                print("Migrating database: Adding 'notes' column.")
+                cursor.execute("ALTER TABLE entries ADD COLUMN notes TEXT DEFAULT ''")
 
             # Add index on timestamp for faster lookups
             cursor.execute(
@@ -52,7 +57,7 @@ def get_all_entries() -> List[Entry]:
         with sqlite3.connect(db_path) as conn:
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
-            cursor.execute("SELECT id, app, title, text, timestamp, embedding, filename FROM entries ORDER BY timestamp DESC")
+            cursor.execute("SELECT id, app, title, text, timestamp, embedding, filename, notes FROM entries ORDER BY timestamp DESC")
             results = cursor.fetchall()
             for row in results:
                 embedding = np.frombuffer(row["embedding"], dtype=np.float32)
@@ -65,6 +70,7 @@ def get_all_entries() -> List[Entry]:
                         timestamp=row["timestamp"],
                         embedding=embedding,
                         filename=row["filename"],
+                        notes=row["notes"] or ""
                     )
                 )
     except sqlite3.Error as e:
@@ -91,7 +97,7 @@ def get_timestamps() -> List[dict]:
 
 
 def insert_entry(
-    text: str, timestamp: int, embedding: np.ndarray, app: str, title: str, filename: str
+    text: str, timestamp: int, embedding: np.ndarray, app: str, title: str, filename: str, notes: str = ""
 ) -> Optional[int]:
     """
     Inserts a new entry into the database.
@@ -102,10 +108,10 @@ def insert_entry(
         with sqlite3.connect(db_path) as conn:
             cursor = conn.cursor()
             cursor.execute(
-                """INSERT INTO entries (text, timestamp, embedding, app, title, filename)
-                   VALUES (?, ?, ?, ?, ?, ?)
+                """INSERT INTO entries (text, timestamp, embedding, app, title, filename, notes)
+                   VALUES (?, ?, ?, ?, ?, ?, ?)
                    ON CONFLICT(timestamp) DO NOTHING""",
-                (text, timestamp, embedding_bytes, app, title, filename),
+                (text, timestamp, embedding_bytes, app, title, filename, notes),
             )
             conn.commit()
             if cursor.rowcount > 0:
@@ -113,6 +119,20 @@ def insert_entry(
     except sqlite3.Error as e:
         print(f"Database error during insertion: {e}")
     return last_row_id
+
+def update_entry_notes(entry_id: int, notes: str) -> bool:
+    """
+    Updates the notes for a specific entry.
+    """
+    try:
+        with sqlite3.connect(db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute("UPDATE entries SET notes = ? WHERE id = ?", (notes, entry_id))
+            conn.commit()
+            return cursor.rowcount > 0
+    except sqlite3.Error as e:
+        print(f"Database error during notes update: {e}")
+        return False
 
 def delete_entry(entry_id: int) -> bool:
     """
@@ -128,3 +148,46 @@ def delete_entry(entry_id: int) -> bool:
     except sqlite3.Error as e:
         print(f"Database error during deletion: {e}")
         return False
+
+def prune_old_data(retention_days: int) -> int:
+    """
+    Deletes entries older than retention_days.
+    Returns the number of deleted records.
+    """
+    import time
+    import os
+    from timeseek.config import screenshots_path
+
+    cutoff_timestamp = int(time.time()) - (retention_days * 86400)
+    deleted_count = 0
+
+    try:
+        with sqlite3.connect(db_path) as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+
+            # Find filenames to delete from disk
+            cursor.execute("SELECT filename FROM entries WHERE timestamp < ?", (cutoff_timestamp,))
+            files_to_delete = cursor.fetchall()
+
+            for row in files_to_delete:
+                if row["filename"]:
+                    filepath = os.path.join(screenshots_path, row["filename"])
+                    if os.path.exists(filepath):
+                        try:
+                            os.remove(filepath)
+                        except Exception as e:
+                            print(f"Failed to delete file {filepath}: {e}")
+
+            # Delete from database
+            cursor.execute("DELETE FROM entries WHERE timestamp < ?", (cutoff_timestamp,))
+            deleted_count = cursor.rowcount
+            conn.commit()
+
+            if deleted_count > 0:
+                print(f"Auto-pruning: Deleted {deleted_count} entries older than {retention_days} days.")
+
+    except sqlite3.Error as e:
+        print(f"Database error during pruning: {e}")
+
+    return deleted_count
