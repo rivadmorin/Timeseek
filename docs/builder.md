@@ -24,3 +24,10 @@ Format:
 - **Learning:** Using the HTML5 `<dialog>` element simplifies M3 modal implementation without heavy JS libraries.
 - **Action/Rule:** Ensure `data-theme` is handled at the `<html>` level for global token swapping.
 - **Verify Command:** `python3 -m timeseek.app` (Check if port 8082 serves the new layout)
+
+## [2026-07-06] Window Recognition & Dashboard Feature
+- **Feature**: Implemented "Daily Dashboard" to visualize app usage statistics and hourly activity.
+- **Feature**: Integrated Window Recognition (active app name and window title) into Search and Timeline views.
+- **UI**: Added filter chips to the search view for application-based filtering.
+- **UI**: Overhauled Timeline viewer with an immersive overlay showing app metadata.
+- **Data**: Added a "Purge Data" feature for privacy and storage management.

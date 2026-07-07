@@ -1,9 +1,47 @@
 {% extends "layout.html" %}
 {% block content %}
 <style>
+    .search-header {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .filter-chips {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        padding-bottom: 8px;
+        scrollbar-width: none; /* Firefox */
+    }
+
+    .filter-chips::-webkit-scrollbar {
+        display: none; /* Chrome, Safari, Opera */
+    }
+
+    .chip {
+        padding: 6px 16px;
+        background-color: var(--md-sys-color-surface-container-high);
+        border: 1px solid var(--md-sys-color-outline-variant);
+        border-radius: var(--md-sys-shape-corner-full);
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--md-sys-color-on-surface-variant);
+        cursor: pointer;
+        white-space: nowrap;
+        transition: all 0.2s;
+    }
+
+    .chip.active {
+        background-color: var(--md-sys-color-secondary-container);
+        color: var(--md-sys-color-on-secondary-container);
+        border-color: transparent;
+    }
+
     .grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
         gap: 24px;
     }
 
@@ -14,6 +52,8 @@
         cursor: pointer;
         transition: transform 0.2s, background-color 0.2s;
         border: 1px solid transparent;
+        display: flex;
+        flex-direction: column;
     }
 
     .card:hover {
@@ -22,11 +62,29 @@
         border-color: var(--md-sys-color-outline-variant);
     }
 
-    .card-image {
+    .card-image-container {
+        position: relative;
         width: 100%;
         aspect-ratio: 16/9;
-        object-fit: cover;
         background-color: var(--md-sys-color-surface-container-low);
+    }
+
+    .card-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .app-badge {
+        position: absolute;
+        bottom: 8px;
+        left: 8px;
+        background-color: rgba(0, 0, 0, 0.6);
+        color: white;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        backdrop-filter: blur(4px);
     }
 
     .card-content {
@@ -47,6 +105,13 @@
         font-size: 12px;
         color: var(--md-sys-color-on-surface-variant);
         margin: 0;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .card-app-name {
+        font-weight: 600;
+        color: var(--md-sys-color-primary);
     }
 
     /* Modal Styling */
@@ -72,7 +137,23 @@
     .dialog-header {
         padding: 16px 24px;
         display: flex;
-        justify-content: flex-end;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .dialog-title-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .dialog-app-title {
+        font-size: 18px;
+        font-weight: 600;
+    }
+
+    .dialog-win-title {
+        font-size: 14px;
+        color: var(--md-sys-color-on-surface-variant);
     }
 
     .close-btn {
@@ -80,31 +161,70 @@
         color: var(--md-sys-color-on-surface-variant);
     }
 
+    .dialog-body {
+        padding: 0 24px 24px 24px;
+    }
+
     .dialog-body img {
         max-width: 100%;
-        max-height: 80vh;
+        max-height: 70vh;
         display: block;
         margin: 0 auto;
+        border-radius: var(--md-sys-shape-corner-large);
+    }
+
+    .dialog-text-content {
+        margin-top: 16px;
+        padding: 16px;
+        background-color: var(--md-sys-color-surface-container-low);
+        border-radius: var(--md-sys-shape-corner-medium);
+        font-size: 14px;
+        max-height: 150px;
+        overflow-y: auto;
+        white-space: pre-wrap;
     }
 </style>
 
-<div class="grid">
+<div class="search-header">
+    {% if apps %}
+    <div class="filter-chips">
+        <div class="chip active" onclick="filterByApp('all', this)">All Apps</div>
+        {% for app_name in apps %}
+        <div class="chip" onclick="filterByApp('{{ app_name }}', this)">{{ app_name }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+
+<div class="grid" id="resultsGrid">
     {% for entry in entries %}
-    <div class="card" onclick="openModal('modal-{{ loop.index0 }}')">
-        <img src="/static/{{ entry.filename }}" alt="Snapshot" class="card-image">
+    <div class="card" data-app="{{ entry.app }}" onclick="openModal('modal-{{ loop.index0 }}')">
+        <div class="card-image-container">
+            <img src="/static/{{ entry.filename }}" alt="Snapshot" class="card-image" loading="lazy">
+            <div class="app-badge">{{ entry.app }}</div>
+        </div>
         <div class="card-content">
             <h3 class="card-title">{{ entry.title or 'Untitled' }}</h3>
-            <p class="card-subtitle">{{ entry.timestamp | timestamp_to_human_readable }}</p>
+            <div class="card-subtitle">
+                <span>{{ entry.timestamp | timestamp_to_human_readable }}</span>
+            </div>
         </div>
     </div>
 
     <dialog id="modal-{{ loop.index0 }}">
         <div class="dialog-content">
             <div class="dialog-header">
+                <div class="dialog-title-info">
+                    <span class="dialog-app-title">{{ entry.app }}</span>
+                    <span class="dialog-win-title">{{ entry.title }}</span>
+                </div>
                 <span class="material-symbols-rounded close-btn" onclick="closeModal('modal-{{ loop.index0 }}')">close</span>
             </div>
             <div class="dialog-body">
                 <img src="/static/{{ entry.filename }}" alt="Full Image">
+                {% if entry.text %}
+                <div class="dialog-text-content">{{ entry.text }}</div>
+                {% endif %}
             </div>
         </div>
     </dialog>
@@ -118,6 +238,22 @@
 
     function closeModal(id) {
         document.getElementById(id).close();
+    }
+
+    function filterByApp(appName, chipElement) {
+        // Update chip styles
+        document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+        chipElement.classList.add('active');
+
+        // Filter cards
+        const cards = document.querySelectorAll('.card');
+        cards.forEach(card => {
+            if (appName === 'all' || card.getAttribute('data-app') === appName) {
+                card.style.display = 'flex';
+            } else {
+                card.style.display = 'none';
+            }
+        });
     }
 </script>
 {% endblock %}

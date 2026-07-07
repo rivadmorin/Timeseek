@@ -1,6 +1,7 @@
 import numpy as np
 from sentence_transformers import SentenceTransformer
 import logging
+from functools import lru_cache
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -19,21 +20,11 @@ except Exception as e:
     model = None
 
 
+@lru_cache(maxsize=128)
 def get_embedding(text: str) -> np.ndarray:
     """
     Generates a sentence embedding for the given text.
-
-    Splits the text into lines, encodes each line using the pre-loaded
-    SentenceTransformer model, and returns the mean of the embeddings.
-    Handles empty input text by returning a zero vector.
-
-    Args:
-        text: The input string to embed.
-
-    Returns:
-        A numpy array representing the mean embedding of the text lines,
-        or a zero vector if the input is empty, whitespace only, or the
-        model failed to load. The array type is float32.
+    Added LRU cache to avoid redundant embedding calculations for similar queries.
     """
     if model is None:
         logger.error("SentenceTransformer model is not loaded. Returning zero vector.")
@@ -43,7 +34,6 @@ def get_embedding(text: str) -> np.ndarray:
         logger.warning("Input text is empty or whitespace. Returning zero vector.")
         return np.zeros(EMBEDDING_DIM, dtype=np.float32)
 
-    # Split text into non-empty lines
     sentences = [line for line in text.split("\n") if line.strip()]
 
     if not sentences:
@@ -51,8 +41,8 @@ def get_embedding(text: str) -> np.ndarray:
         return np.zeros(EMBEDDING_DIM, dtype=np.float32)
 
     try:
-        sentence_embeddings = model.encode(sentences)
-        # Calculate the mean embedding
+        # Optimization: encode all sentences in a single batch
+        sentence_embeddings = model.encode(sentences, show_progress_bar=False)
         mean_embedding = np.mean(sentence_embeddings, axis=0, dtype=np.float32)
         return mean_embedding
     except Exception as e:
@@ -61,24 +51,32 @@ def get_embedding(text: str) -> np.ndarray:
 
 
 def cosine_similarity(a: np.ndarray, b: np.ndarray) -> float:
-    """
-    Calculates the cosine similarity between two numpy vectors.
+    """Calculates cosine similarity using optimized numpy operations."""
+    # Ensure they are float32 for consistency
+    a = a.astype(np.float32)
+    b = b.astype(np.float32)
 
-    Args:
-        a: The first numpy array.
-        b: The second numpy array.
-
-    Returns:
-        The cosine similarity score (float between -1 and 1),
-        or 0.0 if either vector has zero magnitude.
-    """
     norm_a = np.linalg.norm(a)
     norm_b = np.linalg.norm(b)
 
     if norm_a == 0 or norm_b == 0:
-        logger.warning("One or both vectors have zero magnitude. Returning 0 similarity.")
         return 0.0
 
     similarity = np.dot(a, b) / (norm_a * norm_b)
-    # Clip values to handle potential floating-point inaccuracies slightly outside [-1, 1]
     return float(np.clip(similarity, -1.0, 1.0))
+
+def batch_cosine_similarity(query_embedding: np.ndarray, matrix: np.ndarray) -> np.ndarray:
+    """Calculates cosine similarity for a query against a matrix of embeddings."""
+    # Matrix shape: (N, EMBEDDING_DIM)
+    query_norm = np.linalg.norm(query_embedding)
+    matrix_norms = np.linalg.norm(matrix, axis=1)
+
+    if query_norm == 0:
+        return np.zeros(matrix.shape[0])
+
+    # Avoid division by zero
+    matrix_norms[matrix_norms == 0] = 1.0
+
+    dot_products = np.dot(matrix, query_embedding)
+    similarities = dot_products / (query_norm * matrix_norms)
+    return np.clip(similarities, -1.0, 1.0)
