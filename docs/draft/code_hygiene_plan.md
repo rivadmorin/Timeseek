@@ -25,42 +25,42 @@ updated: 2026-07-06
 
 - [ ] Task 1: Inspector 🧐 - Extract magic numbers to config.py
   - **Read Boundary:**
-    - [openrecall/app.py](file:///app/openrecall/app.py)
-    - [openrecall/config.py](file:///app/openrecall/config.py)
+    - [timeseek/app.py](file:///app/timeseek/app.py)
+    - [timeseek/config.py](file:///app/timeseek/config.py)
   - **Write/Modify Boundary:**
-    - [openrecall/app.py](file:///app/openrecall/app.py)
-    - [openrecall/config.py](file:///app/openrecall/config.py)
+    - [timeseek/app.py](file:///app/timeseek/app.py)
+    - [timeseek/config.py](file:///app/timeseek/config.py)
   - **Depends On:** None
   - **Verification & Testing:**
-    - Command: `python3 -m py_compile openrecall/app.py openrecall/config.py`
+    - Command: `python3 -m py_compile timeseek/app.py timeseek/config.py`
     - Success Criteria: Files compile without syntax errors.
-  - **Rollback Action:** `git checkout openrecall/app.py openrecall/config.py`
+  - **Rollback Action:** `git checkout timeseek/app.py timeseek/config.py`
   - **Target Staging Memory:** `docs/staged/code_hygiene-inspector-06-07-2026-t1.md`
 
 - [ ] Task 2: Inspector 🧐 - Audit and cleanup unused imports/variables
   - **Read Boundary:**
-    - [openrecall/](file:///app/openrecall/)
+    - [timeseek/](file:///app/timeseek/)
   - **Write/Modify Boundary:**
-    - [openrecall/app.py](file:///app/openrecall/app.py)
-    - [openrecall/nlp.py](file:///app/openrecall/nlp.py)
-    - [openrecall/database.py](file:///app/openrecall/database.py)
-    - [openrecall/screenshot.py](file:///app/openrecall/screenshot.py)
+    - [timeseek/app.py](file:///app/timeseek/app.py)
+    - [timeseek/nlp.py](file:///app/timeseek/nlp.py)
+    - [timeseek/database.py](file:///app/timeseek/database.py)
+    - [timeseek/screenshot.py](file:///app/timeseek/screenshot.py)
   - **Depends On:** Task 1
   - **Verification & Testing:**
     - Command: `pytest`
     - Success Criteria: All tests pass.
-  - **Rollback Action:** `git checkout openrecall/`
+  - **Rollback Action:** `git checkout timeseek/`
   - **Target Staging Memory:** `docs/staged/code_hygiene-inspector-06-07-2026-t2.md`
 
 - [ ] Task 3: Inspector 🧐 - Standardize JSDoc/Docstring headers
   - **Read Boundary:**
-    - [openrecall/](file:///app/openrecall/)
+    - [timeseek/](file:///app/timeseek/)
   - **Write/Modify Boundary:**
-    - [openrecall/utils.py](file:///app/openrecall/utils.py)
-    - [openrecall/ocr.py](file:///app/openrecall/ocr.py)
+    - [timeseek/utils.py](file:///app/timeseek/utils.py)
+    - [timeseek/ocr.py](file:///app/timeseek/ocr.py)
   - **Depends On:** Task 2
   - **Verification & Testing:**
-    - Command: `python3 -m py_compile openrecall/utils.py openrecall/ocr.py`
+    - Command: `python3 -m py_compile timeseek/utils.py timeseek/ocr.py`
     - Success Criteria: Files compile without syntax errors.
-  - **Rollback Action:** `git checkout openrecall/`
+  - **Rollback Action:** `git checkout timeseek/`
   - **Target Staging Memory:** `docs/staged/code_hygiene-inspector-06-07-2026-t3.md`

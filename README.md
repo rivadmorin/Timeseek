@@ -12,7 +12,7 @@ Join our [Discord](https://discord.gg/RzvCYRgUkx) and/or [Telegram](https://t.me
 
 # Take Control of Your Digital Memory (M3 Overhauled! 🕴️)
 
-OpenRecall is a fully open-source, privacy-first alternative to proprietary solutions like Microsoft's Windows Recall or Limitless' Rewind.ai.
+Timeseek is a fully open-source, privacy-first alternative to proprietary solutions like Microsoft's Windows Recall or Limitless' Rewind.ai.
 
 ## ✨ New in this version: Material Design 3
 We've completely overhauled the UI using **Google Material Design 3 (M3)** principles:
@@ -22,7 +22,7 @@ We've completely overhauled the UI using **Google Material Design 3 (M3)** princ
 
 ## What does it do?
 
-OpenRecall captures your digital history through regularly taken snapshots. The text and images are analyzed and made searchable locally on your machine.
+Timeseek captures your digital history through regularly taken snapshots. The text and images are analyzed and made searchable locally on your machine.
 
 ## Features
 
@@ -33,7 +33,7 @@ OpenRecall captures your digital history through regularly taken snapshots. The 
 
 ## Technical Architecture
 
-OpenRecall operates on a sophisticated pipeline designed for efficiency and privacy:
+Timeseek operates on a sophisticated pipeline designed for efficiency and privacy:
 
 1.  **Deduplication (MSSIM)**: Uses *Mean Structural Similarity Index* to compare screenshots. If the screen hasn't changed significantly, processing is skipped to save CPU/Battery.
 2.  **OCR (doctr)**: Extracts text using a specialized `doctr` model optimized for local execution.
@@ -42,13 +42,13 @@ OpenRecall operates on a sophisticated pipeline designed for efficiency and priv
 
 ## Project Structure
 
-- **`openrecall/app.py`**: Flask server, UI routing, and background recording thread management.
-- **`openrecall/screenshot.py`**: Core logic for multi-monitor capture and MSSIM-based deduplication.
-- **`openrecall/ocr.py`**: OCR implementation using the `python-doctr` library.
-- **`openrecall/nlp.py`**: Semantic search logic, vector embeddings, and cosine similarity calculations.
-- **`openrecall/database.py`**: SQLite schema, migrations (defensive column addition), and persistence.
-- **`openrecall/config.py`**: Centralized configuration and CLI argument parsing.
-- **`openrecall/templates/`**: M3-compliant Jinja2 templates for the web interface.
+- **`timeseek/app.py`**: Flask server, UI routing, and background recording thread management.
+- **`timeseek/screenshot.py`**: Core logic for multi-monitor capture and MSSIM-based deduplication.
+- **`timeseek/ocr.py`**: OCR implementation using the `python-doctr` library.
+- **`timeseek/nlp.py`**: Semantic search logic, vector embeddings, and cosine similarity calculations.
+- **`timeseek/database.py`**: SQLite schema, migrations (defensive column addition), and persistence.
+- **`timeseek/config.py`**: Centralized configuration and CLI argument parsing.
+- **`timeseek/templates/`**: M3-compliant Jinja2 templates for the web interface.
 
 ## Get Started
 
@@ -59,21 +59,21 @@ OpenRecall operates on a sophisticated pipeline designed for efficiency and priv
 
 ### Standard Installation
 ```bash
-python3 -m pip install --upgrade --no-cache-dir git+https://github.com/openrecall/openrecall.git
+python3 -m pip install --upgrade --no-cache-dir git+https://github.com/timeseek/timeseek.git
 ```
 
 ### Advanced / Development Installation
 If you are contributing or need specific OCR dependencies:
 ```bash
-git clone https://github.com/openrecall/openrecall.git
-cd openrecall
+git clone https://github.com/timeseek/timeseek.git
+cd timeseek
 pip install -e .
 ```
 *Note: This project depends on a specific fork of `python-doctr` for optimized performance.*
 
 ### To Run
 ```bash
-python3 -m openrecall.app
+python3 -m timeseek.app
 ```
 Open your browser to [http://localhost:8082](http://localhost:8082).
 
@@ -92,11 +92,11 @@ This repository is optimized for **Agentic Workflow**. We use a specialized syst
 
 ## Uninstall instructions
 
-1. Uninstall the package: `pip uninstall openrecall`
+1. Uninstall the package: `pip uninstall timeseek`
 2. Remove stored data:
-   - **Windows**: `rmdir /s %APPDATA%\\openrecall`
-   - **macOS**: `rm -rf ~/Library/Application\\ Support/openrecall`
-   - **Linux**: `rm -rf ~/.local/share/openrecall`
+   - **Windows**: `rmdir /s %APPDATA%\\timeseek`
+   - **macOS**: `rm -rf ~/Library/Application\\ Support/timeseek`
+   - **Linux**: `rm -rf ~/.local/share/timeseek`
 
 ## License
-OpenRecall is released under the [AGPLv3](https://opensource.org/licenses/AGPL-3.0).
+Timeseek is released under the [AGPLv3](https://opensource.org/licenses/AGPL-3.0).

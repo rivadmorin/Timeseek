@@ -1,7 +1,7 @@
 ---
 plan_id: m3_ui_overhaul
 title: "Orchestration Plan: Material Design 3 UI Overhaul"
-goal: "Complete redesign of OpenRecall UI using M3, supporting light/dark modes and offline functionality."
+goal: "Complete redesign of Timeseek UI using M3, supporting light/dark modes and offline functionality."
 status: completed
 created: 2026-07-06
 updated: 2026-07-06
@@ -10,7 +10,7 @@ updated: 2026-07-06
 # Orchestration Plan: Material Design 3 UI Overhaul
 
 ## 1. Context & Risk Analysis (Pre-Mortem)
-- **Context:** OpenRecall is a local-first application for desktop. The current UI is functional but lacks modern design standards.
+- **Context:** Timeseek is a local-first application for desktop. The current UI is functional but lacks modern design standards.
 - **Technical Risk:** Potential breaking of Flask routing or Jinja2 template logic. Dependency on online CDNs for Material components which conflicts with the offline-first requirement.
 - **Mitigation:** Use Nomad 💾 to localize all assets. Perform atomic commits for each template. Verify functionality after every major UI change.
 
@@ -22,7 +22,7 @@ updated: 2026-07-06
 
 - [ ] Task 1: Design 🎨 - Generate M3 Mockups via Stitch
   - **Read Boundary:**
-    - [openrecall/templates/](file:///app/openrecall/templates/)
+    - [timeseek/templates/](file:///app/timeseek/templates/)
   - **Write/Modify Boundary:**
     - [docs/staged/m3_ui_overhaul-design-06-07-2026-v1.md](file:///app/docs/staged/)
   - **Depends On:** None
@@ -33,7 +33,7 @@ updated: 2026-07-06
   - **Read Boundary:**
     - None
   - **Write/Modify Boundary:**
-    - [openrecall/static/](file:///app/openrecall/static/)
+    - [timeseek/static/](file:///app/timeseek/static/)
   - **Depends On:** Task 1
   - **Verification & Testing:** Check if CSS/JS files are accessible via local paths in browser.
   - **Target Staging Memory:** `docs/staged/m3_ui_overhaul-nomad-06-07-2026-v1.md`
@@ -42,27 +42,27 @@ updated: 2026-07-06
   - **Read Boundary:**
     - [docs/init/Material 📐 - Google Jules.md](file:///app/docs/init/)
   - **Write/Modify Boundary:**
-    - [openrecall/static/css/m3-tokens.css](file:///app/openrecall/static/css/m3-tokens.css)
+    - [timeseek/static/css/m3-tokens.css](file:///app/timeseek/static/css/m3-tokens.css)
   - **Depends On:** Task 2
   - **Verification & Testing:** Inspect element styles to ensure M3 tokens are applied.
   - **Target Staging Memory:** `docs/staged/m3_ui_overhaul-material-06-07-2026-v1.md`
 
 - [ ] Task 4: Builder 🏗️ - Template Refactoring & UX Logic
   - **Read Boundary:**
-    - [openrecall/templates/](file:///app/openrecall/templates/)
-    - [openrecall/app.py](file:///app/openrecall/app.py)
+    - [timeseek/templates/](file:///app/timeseek/templates/)
+    - [timeseek/app.py](file:///app/timeseek/app.py)
   - **Write/Modify Boundary:**
-    - [openrecall/templates/](file:///app/openrecall/templates/)
-    - [openrecall/app.py](file:///app/openrecall/app.py)
+    - [timeseek/templates/](file:///app/timeseek/templates/)
+    - [timeseek/app.py](file:///app/timeseek/app.py)
   - **Depends On:** Task 3
-  - **Verification & Testing:** Run `python -m openrecall.app` and verify Search/Timeline functionality.
+  - **Verification & Testing:** Run `python -m timeseek.app` and verify Search/Timeline functionality.
   - **Target Staging Memory:** `docs/staged/m3_ui_overhaul-builder-06-07-2026-v1.md`
 
 - [ ] Task 5: Taste 💅 - Visual Rhythm & Polish
   - **Read Boundary:**
-    - [openrecall/templates/](file:///app/openrecall/templates/)
+    - [timeseek/templates/](file:///app/timeseek/templates/)
   - **Write/Modify Boundary:**
-    - [openrecall/static/css/custom.css](file:///app/openrecall/static/css/custom.css)
+    - [timeseek/static/css/custom.css](file:///app/timeseek/static/css/custom.css)
   - **Depends On:** Task 4
   - **Verification & Testing:** Visual inspection for spacing and concentric corners.
   - **Target Staging Memory:** `docs/staged/m3_ui_overhaul-taste-06-07-2026-v1.md`

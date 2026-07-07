@@ -10,8 +10,8 @@ import numpy as np
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from openrecall.database import create_db, insert_entry, get_all_entries, get_timestamps, Entry
-from openrecall.config import appdata_folder, db_path
+from timeseek.database import create_db, insert_entry, get_all_entries, get_timestamps, Entry
+from timeseek.config import appdata_folder, db_path
 
 class TestDatabase(unittest.TestCase):
 

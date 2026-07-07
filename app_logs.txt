@@ -17,7 +17,9 @@ INFO:httpx:HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/se
 INFO:httpx:HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/adapter_config.json "HTTP/1.1 404 Not Found"
 INFO:httpx:HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
 INFO:httpx:HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/config.json "HTTP/1.1 200 OK"
-Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|██████████| 103/103 [00:00<00:00, 3253.90it/s]
+
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]
+Loading weights: 100%|██████████| 103/103 [00:00<00:00, 3253.90it/s]
 INFO:httpx:HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/processor_config.json "HTTP/1.1 404 Not Found"
 INFO:httpx:HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/preprocessor_config.json "HTTP/1.1 404 Not Found"
 INFO:httpx:HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/video_preprocessor_config.json "HTTP/1.1 404 Not Found"
@@ -35,8 +37,8 @@ INFO:httpx:HTTP Request: GET https://huggingface.co/api/models/sentence-transfor
 INFO:httpx:HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/1_Pooling/config.json "HTTP/1.1 307 Temporary Redirect"
 INFO:httpx:HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/1_Pooling%2Fconfig.json "HTTP/1.1 200 OK"
 INFO:httpx:HTTP Request: GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2 "HTTP/1.1 200 OK"
-INFO:openrecall.nlp:SentenceTransformer model 'all-MiniLM-L6-v2' loaded successfully.
-Appdata folder: /home/jules/.openrecall
+INFO:timeseek.nlp:SentenceTransformer model 'all-MiniLM-L6-v2' loaded successfully.
+Appdata folder: /home/jules/.timeseek
 Starting server on port: 8082
  * Serving Flask app 'app'
  * Debug mode: off
@@ -49,10 +51,10 @@ Traceback (most recent call last):
     self.run()
   File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/threading.py", line 1012, in run
     self._target(*self._args, **self._kwargs)
-  File "/app/openrecall/screenshot.py", line 77, in record_screenshots_thread
+  File "/app/timeseek/screenshot.py", line 77, in record_screenshots_thread
     last_screenshots: List[np.ndarray] = take_screenshots()
                                          ^^^^^^^^^^^^^^^^^^
-  File "/app/openrecall/screenshot.py", line 55, in take_screenshots
+  File "/app/timeseek/screenshot.py", line 55, in take_screenshots
     with mss.mss() as sct:
          ^^^^^^^^^
   File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/site-packages/mss/factory.py", line 22, in mss

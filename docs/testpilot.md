@@ -17,7 +17,7 @@ Format:
 ## 25-05-2024 - Fixed Embedding Type Mismatch in app.py
 - **Tags:** #bug #logic #python #flask
 - **Level:** 🔴 CRITICAL
-- **Scope:** [openrecall/app.py](file:///app/openrecall/app.py)
+- **Scope:** [timeseek/app.py](file:///app/timeseek/app.py)
 - **Notify Agents:** @BugHunter @Scholar
 - **Symptom:** Search results were incorrectly ordered or failed due to `np.frombuffer` with wrong dtype (`float64` instead of `float32`) and attempting to buffer an object that was already a numpy array.
 - **Root Cause:** `get_all_entries()` already returns deserialized numpy arrays, but `app.py` tried to deserialize them again with the wrong type.

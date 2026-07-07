@@ -29,7 +29,7 @@ To ensure all agents can resolve common build, environment, and code compilation
 ## 25-05-2024 - Python Function Overshadowing Bug
 - **Tags:** #python #bug #architecture
 - **Level:** 🔴 CRITICAL
-- **Scope:** [openrecall/screenshot.py](file:///app/openrecall/screenshot.py)
+- **Scope:** [timeseek/screenshot.py](file:///app/timeseek/screenshot.py)
 - **Notify Agents:** @BugHunter @Inspector
 - **Fingerprint ID:** ERR-PY-OVERSHADOW
 - **Symptom:** Application fails to start or crashes with NameError inside a loop that should be working.
@@ -40,7 +40,7 @@ To ensure all agents can resolve common build, environment, and code compilation
 ## 25-05-2024 - Fixed Embedding Type Mismatch in app.py
 - **Tags:** #bug #logic #python #flask
 - **Level:** 🔴 CRITICAL
-- **Scope:** [openrecall/app.py](file:///app/openrecall/app.py)
+- **Scope:** [timeseek/app.py](file:///app/timeseek/app.py)
 - **Notify Agents:** @BugHunter @Scholar
 - **Symptom:** Search results were incorrectly ordered or failed due to `np.frombuffer` with wrong dtype (`float64` instead of `float32`) and attempting to buffer an object that was already a numpy array.
 - **Root Cause:** `get_all_entries()` already returns deserialized numpy arrays, but `app.py` tried to deserialize them again with the wrong type.

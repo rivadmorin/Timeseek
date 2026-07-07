@@ -3,11 +3,11 @@ from threading import Thread
 import numpy as np
 from flask import Flask, render_template, request, send_from_directory
 
-from openrecall.config import appdata_folder, screenshots_path, args
-from openrecall.database import create_db, get_all_entries, get_timestamps
-from openrecall.nlp import cosine_similarity, get_embedding
-from openrecall.screenshot import record_screenshots_thread
-from openrecall.utils import human_readable_time, timestamp_to_human_readable
+from timeseek.config import appdata_folder, screenshots_path, args
+from timeseek.database import create_db, get_all_entries, get_timestamps
+from timeseek.nlp import cosine_similarity, get_embedding
+from timeseek.screenshot import record_screenshots_thread
+from timeseek.utils import human_readable_time, timestamp_to_human_readable
 
 app = Flask(__name__)
 
