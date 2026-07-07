@@ -45,6 +45,7 @@
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
+        z-index: 2;
     }
 
     .app-info-pill {
@@ -106,7 +107,7 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 16px;
+        gap: 20px;
     }
 
     .timestamp-label {
@@ -116,6 +117,33 @@
         background-color: var(--md-sys-color-primary-container);
         padding: 8px 16px;
         border-radius: var(--md-sys-shape-corner-full);
+    }
+
+    .notes-wrapper {
+        width: 100%;
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+        background-color: var(--md-sys-color-surface-container-highest);
+        padding: 12px 16px;
+        border-radius: var(--md-sys-shape-corner-medium);
+    }
+
+    .m3-textfield {
+        flex: 1;
+        background: transparent;
+        border: none;
+        color: var(--md-sys-color-on-surface);
+        font-family: inherit;
+        font-size: 14px;
+        resize: none;
+        outline: none;
+        height: 40px;
+        transition: height 0.2s;
+    }
+
+    .m3-textfield:focus {
+        height: 80px;
     }
 
     .slider-wrapper {
@@ -167,6 +195,12 @@
         <div class="timestamp-label" id="sliderValue">
             {{ entries[0].timestamp | timestamp_to_human_readable }}
         </div>
+
+        <div class="notes-wrapper">
+            <span class="material-symbols-rounded">edit_note</span>
+            <textarea id="noteField" placeholder="Add a note to this moment..." class="m3-textfield">{{ entries[0].notes }}</textarea>
+        </div>
+
         <div class="slider-wrapper">
             <span class="material-symbols-rounded">history</span>
             <input type="range" id="discreteSlider" min="0" max="{{entries|length - 1}}" step="1" value="0">
@@ -183,7 +217,8 @@
             "timestamp": {{ entry.timestamp }},
             "filename": "{{ entry.filename }}",
             "app": "{{ entry.app | replace('"', '\"') }}",
-            "title": "{{ entry.title | replace('"', '\"') }}"
+            "title": "{{ entry.title | replace('"', '\"') }}",
+            "notes": "{{ entry.notes | replace('\n', '\\n') | replace('"', '\"') }}"
         }{% if not loop.last %},{% endif %}
         {% endfor %}
     ];
@@ -193,6 +228,7 @@
     const timestampImage = document.getElementById('timestampImage');
     const appNameLabel = document.getElementById('appName');
     const winTitleLabel = document.getElementById('winTitle');
+    const noteField = document.getElementById('noteField');
 
     slider.addEventListener('input', function() {
         const index = parseInt(slider.value);
@@ -203,6 +239,31 @@
         timestampImage.src = `/static/${item.filename}`;
         appNameLabel.textContent = item.app;
         winTitleLabel.textContent = item.title;
+        noteField.value = item.notes;
+    });
+
+    noteField.addEventListener('blur', async function() {
+        const index = parseInt(slider.value);
+        const item = data[index];
+        const newNotes = noteField.value;
+
+        if (newNotes === item.notes) return;
+
+        try {
+            const response = await fetch(`/update_note/${item.id}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ notes: newNotes })
+            });
+            if (response.ok) {
+                item.notes = newNotes; // Update local data
+                console.log('Notes updated');
+            } else {
+                console.error('Failed to update notes');
+            }
+        } catch (error) {
+            console.error('Error updating notes:', error);
+        }
     });
 
     async function deleteCurrentEntry() {
