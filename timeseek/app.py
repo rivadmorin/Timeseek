@@ -1,3 +1,4 @@
+import re
 import json
 import os
 import shutil
@@ -9,15 +10,16 @@ import numpy as np
 from flask import Flask, render_template, request, send_from_directory, redirect, url_for, jsonify
 
 from timeseek.config import appdata_folder, screenshots_path, db_path, args, ACTIVE_SLEEP, RETENTION_DAYS
-from timeseek.database import create_db, get_all_entries, delete_entry, update_entry_notes, prune_old_data
+from timeseek.database import create_db, get_all_entries, delete_entry, update_entry_notes, prune_old_data, delete_entries_by_range
 from timeseek.nlp import batch_cosine_similarity, get_embedding
 from timeseek.screenshot import record_screenshots_thread
-from timeseek.utils import human_readable_time, timestamp_to_human_readable
+from timeseek.utils import human_readable_time, timestamp_to_human_readable, get_app_category
 
 app = Flask(__name__)
 
 app.jinja_env.filters["human_readable_time"] = human_readable_time
 app.jinja_env.filters["timestamp_to_human_readable"] = timestamp_to_human_readable
+app.jinja_env.globals.update(get_app_category=get_app_category)
 
 # Global cache for entries to speed up search and dashboard
 cached_entries = []
@@ -80,7 +82,8 @@ def timeline():
             "filename": e.filename,
             "app": e.app,
             "title": e.title,
-            "notes": e.notes
+            "notes": e.notes,
+            "category": get_app_category(e.app or "")
         } for e in entries
     ])
     return render_template("timeline.html", entries=entries, entries_json=entries_json)
@@ -148,6 +151,18 @@ def delete(entry_id):
     return jsonify({"success": False, "error": "Entry not found"}), 404
 
 
+@app.route("/bulk_delete", methods=["POST"])
+def bulk_delete():
+    import time
+    hours = int(request.form.get("range", 0))
+    if hours > 0:
+        end = int(time.time())
+        start = end - (hours * 3600)
+        delete_entries_by_range(start, end)
+        refresh_cache()
+    return redirect(url_for("dashboard"))
+
+
 @app.route("/purge", methods=["POST"])
 def purge():
     """Deletes all screenshots and the database."""
@@ -168,6 +183,48 @@ def serve_image(filename):
     """Serves recorded screenshots from the appdata directory."""
     return send_from_directory(screenshots_path, filename)
 
+@app.route("/api/heatmap")
+def heatmap_api():
+    """Returns activity intensity data for the heatmap."""
+    with cache_lock:
+        entries = list(cached_entries)
+
+    counts = Counter()
+    for e in entries:
+        day = datetime.fromtimestamp(e.timestamp).strftime("%Y-%m-%d")
+        counts[day] += 1
+
+    return jsonify(counts)
+
+@app.route("/api/wordcloud")
+def wordcloud_api():
+    """Returns top keywords from OCR text."""
+    with cache_lock:
+        entries = list(cached_entries)
+
+    words = []
+    # Stop words (very basic list)
+    stop_words = {"the", "a", "an", "and", "or", "but", "in", "on", "at", "to", "for", "with", "is", "are", "was", "were", "of", "it", "that", "this"}
+
+    for e in entries:
+        if e.text:
+            # Simple word extraction
+            extracted = re.findall(r'\w{4,}', e.text.lower())
+            words.extend([w for w in extracted if w not in stop_words])
+
+    top_words = Counter(words).most_common(50)
+    return jsonify([{"text": w, "size": c} for w, c in top_words])
+
+@app.route("/export/pdf/<int:entry_id>")
+def export_pdf(entry_id):
+    """Exports a single entry to a basic PDF-like HTML page for printing."""
+    with cache_lock:
+        entry = next((e for e in cached_entries if e.id == entry_id), None)
+
+    if not entry:
+        return "Entry not found", 404
+
+    return render_template("export_pdf.html", entry=entry)
 
 if __name__ == "__main__":
     create_db()

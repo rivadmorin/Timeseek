@@ -4,7 +4,6 @@
     .dashboard-grid {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
-        grid-template-rows: auto auto;
         gap: 24px;
         margin-top: 8px;
     }
@@ -76,51 +75,77 @@
         border-radius: 4px;
     }
 
-    .chart-container {
-        height: 200px;
+    /* Heatmap styling */
+    .heatmap-container {
         display: flex;
-        align-items: flex-end;
-        gap: 8px;
-        padding-top: 20px;
+        flex-wrap: wrap;
+        gap: 4px;
+        padding: 10px 0;
     }
 
-    .chart-bar {
-        flex: 1;
-        background-color: var(--md-sys-color-primary-container);
-        border-radius: 4px 4px 0 0;
-        min-height: 2px;
-        position: relative;
-        transition: height 0.3s ease;
+    .heatmap-cell {
+        width: 14px;
+        height: 14px;
+        border-radius: 2px;
+        background-color: var(--md-sys-color-surface-container-highest);
+        cursor: pointer;
     }
 
-    .chart-bar:hover {
-        background-color: var(--md-sys-color-primary);
+    .heatmap-cell:hover {
+        outline: 1px solid var(--md-sys-color-primary);
     }
 
-    .chart-bar::after {
-        content: attr(data-label);
-        position: absolute;
-        bottom: -20px;
-        left: 50%;
-        transform: translateX(-50%);
-        font-size: 10px;
-        color: var(--md-sys-color-on-surface-variant);
+    .level-1 { background-color: #4F378B; opacity: 0.3; }
+    .level-2 { background-color: #4F378B; opacity: 0.5; }
+    .level-3 { background-color: #4F378B; opacity: 0.8; }
+    .level-4 { background-color: #D0BCFF; }
+
+    /* Word Cloud styling */
+    .word-cloud {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        justify-content: center;
+        align-items: center;
+        min-height: 150px;
+    }
+
+    .word-cloud span {
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+
+    .word-cloud span:hover {
+        transform: scale(1.2);
+        color: var(--md-sys-color-primary);
     }
 
     .management-section {
         grid-column: span 2;
+        padding: 24px;
+        background-color: var(--md-sys-color-surface-container-low);
+        border: 1px solid var(--md-sys-color-outline-variant);
+        border-radius: var(--md-sys-shape-corner-extra-large);
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .mgmt-group {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 20px 24px;
-        background-color: var(--md-sys-color-error-container);
-        color: var(--md-sys-color-on-error-container);
+        padding: 16px;
+        background-color: var(--md-sys-color-surface-container);
         border-radius: var(--md-sys-shape-corner-large);
     }
 
-    .purge-btn {
-        background-color: var(--md-sys-color-error);
-        color: var(--md-sys-color-on-error);
+    .danger-group {
+        background-color: var(--md-sys-color-error-container);
+        color: var(--md-sys-color-on-error-container);
+    }
+
+    .btn {
         border: none;
         padding: 10px 24px;
         border-radius: var(--md-sys-shape-corner-full);
@@ -129,8 +154,27 @@
         transition: opacity 0.2s;
     }
 
-    .purge-btn:hover {
+    .btn-secondary {
+        background-color: var(--md-sys-color-secondary-container);
+        color: var(--md-sys-color-on-secondary-container);
+    }
+
+    .btn-danger {
+        background-color: var(--md-sys-color-error);
+        color: var(--md-sys-color-on-error);
+    }
+
+    .btn:hover {
         opacity: 0.9;
+    }
+
+    .select-input {
+        padding: 8px 16px;
+        border-radius: var(--md-sys-shape-corner-medium);
+        background-color: var(--md-sys-color-surface-container-highest);
+        color: var(--md-sys-color-on-surface);
+        border: 1px solid var(--md-sys-color-outline-variant);
+        outline: none;
     }
 </style>
 
@@ -142,6 +186,17 @@
     <div class="stat-card">
         <span class="stat-label">Snapshots Captured</span>
         <span class="stat-value">{{ total_snapshots }}</span>
+    </div>
+
+    <!-- Activity Heatmap -->
+    <div class="dashboard-section" style="grid-column: span 2;">
+        <div class="section-title">
+            <span class="material-symbols-rounded">calendar_view_month</span>
+            Activity Heatmap (Last 90 Days)
+        </div>
+        <div class="heatmap-container" id="heatmap">
+            <!-- Populated by JS -->
+        </div>
     </div>
 
     <div class="dashboard-section">
@@ -164,26 +219,90 @@
         </div>
     </div>
 
+    <!-- Word Cloud -->
     <div class="dashboard-section">
         <div class="section-title">
-            <span class="material-symbols-rounded">timeline</span>
-            Hourly Activity
+            <span class="material-symbols-rounded">cloud</span>
+            Keyword Insights
         </div>
-        <div class="chart-container">
-            {% for hour, count in hourly_activity %}
-            <div class="chart-bar" style="height: {{ (count / max_hourly * 100) if max_hourly > 0 else 0 }}%" data-label="{{ hour }}:00" title="{{ count }} snapshots at {{ hour }}:00"></div>
-            {% endfor %}
+        <div class="word-cloud" id="wordcloud">
+            <!-- Populated by JS -->
         </div>
     </div>
 
     <div class="management-section">
-        <div>
-            <div style="font-weight: 600;">Data Management</div>
-            <div style="font-size: 13px; opacity: 0.8;">Purge all local snapshots and database entries to free up space.</div>
+        <div class="section-title">
+            <span class="material-symbols-rounded">settings</span>
+            Data Management
         </div>
-        <form action="/purge" method="post" onsubmit="return confirm('Are you sure you want to delete all your data? This action is irreversible.')">
-            <button type="submit" class="purge-btn">Purge Old Data</button>
-        </form>
+
+        <div class="mgmt-group">
+            <div>
+                <div style="font-weight: 600;">Bulk Delete</div>
+                <div style="font-size: 13px; opacity: 0.8;">Remove snapshots within a specific time range.</div>
+            </div>
+            <form action="/bulk_delete" method="post" style="display: flex; gap: 12px; align-items: center;">
+                <select name="range" class="select-input">
+                    <option value="1">Last 1 Hour</option>
+                    <option value="24">Last 24 Hours</option>
+                    <option value="168">Last 7 Days</option>
+                </select>
+                <button type="submit" class="btn btn-secondary">Delete</button>
+            </form>
+        </div>
+
+        <div class="mgmt-group danger-group">
+            <div>
+                <div style="font-weight: 600;">Full Purge</div>
+                <div style="font-size: 13px; opacity: 0.8;">Irreversibly delete all local data.</div>
+            </div>
+            <form action="/purge" method="post" onsubmit="return confirm('Are you sure you want to delete all your data? This action is irreversible.')">
+                <button type="submit" class="btn btn-danger">Purge All</button>
+            </form>
+        </div>
     </div>
 </div>
+
+<script>
+    async function loadInsights() {
+        // Load Heatmap
+        const heatmapRes = await fetch('/api/heatmap');
+        const heatmapData = await heatmapRes.json();
+        const heatmapContainer = document.getElementById('heatmap');
+
+        const now = new Date();
+        for (let i = 89; i >= 0; i--) {
+            const d = new Date();
+            d.setDate(now.getDate() - i);
+            const dateStr = d.toISOString().split('T')[0];
+            const count = heatmapData[dateStr] || 0;
+
+            const cell = document.createElement('div');
+            cell.className = 'heatmap-cell';
+            if (count > 50) cell.classList.add('level-4');
+            else if (count > 20) cell.classList.add('level-3');
+            else if (count > 5) cell.classList.add('level-2');
+            else if (count > 0) cell.classList.add('level-1');
+
+            cell.title = `${dateStr}: ${count} snapshots`;
+            heatmapContainer.appendChild(cell);
+        }
+
+        // Load Word Cloud
+        const cloudRes = await fetch('/api/wordcloud');
+        const cloudData = await cloudRes.json();
+        const cloudContainer = document.getElementById('wordcloud');
+
+        cloudData.forEach(item => {
+            const span = document.createElement('span');
+            span.textContent = item.text;
+            span.style.fontSize = `${Math.min(10 + item.size, 32)}px`;
+            span.style.opacity = Math.max(0.4, item.size / 20);
+            span.onclick = () => window.location.href = `/search?q=${item.text}`;
+            cloudContainer.appendChild(span);
+        });
+    }
+
+    loadInsights();
+</script>
 {% endblock %}

@@ -97,7 +97,13 @@
     }
 
     .action-btn:hover {
+        background-color: var(--md-sys-color-primary);
+        color: var(--md-sys-color-on-primary);
+    }
+
+    .action-btn.delete-btn:hover {
         background-color: var(--md-sys-color-error);
+        color: var(--md-sys-color-on-error);
     }
 
     .control-panel {
@@ -177,11 +183,17 @@
                 <span class="material-symbols-rounded">category</span>
                 <div style="display: flex; flex-direction: column;">
                     <span class="app-name-label" id="appName">{{ entries[0].app }}</span>
+                    <script>document.addEventListener("DOMContentLoaded", () => { document.getElementById("exportBtn").href = `/export/pdf/${data[0].id}`; });</script>
+                    <span class="category-badge" id="appCategory" style="font-size: 10px; background: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container); padding: 0 6px; border-radius: 4px; width: fit-content;">{{ get_app_category(entries[0].app or "") }}</span>
                     <span class="window-title-label" id="winTitle">{{ entries[0].title }}</span>
                 </div>
             </div>
             <div class="header-actions">
-                <div class="action-btn" onclick="deleteCurrentEntry()">
+                <div class="action-btn" onclick="copyCurrentText()" title="Copy OCR Text">
+                    <span class="material-symbols-rounded">content_copy</span>
+                </div>
+                <a class="action-btn" id="exportBtn" target="_blank" title="Export to PDF" style="text-decoration: none;"><span class="material-symbols-rounded">picture_as_pdf</span></a>
+                <div class="action-btn delete-btn" onclick="deleteCurrentEntry()" title="Delete Snapshot">
                     <span class="material-symbols-rounded">delete</span>
                 </div>
             </div>
@@ -218,7 +230,8 @@
             "filename": "{{ entry.filename }}",
             "app": "{{ entry.app | replace('"', '\"') }}",
             "title": "{{ entry.title | replace('"', '\"') }}",
-            "notes": "{{ entry.notes | replace('\n', '\\n') | replace('"', '\"') }}"
+            "notes": "{{ entry.notes | replace('\n', '\\n') | replace('"', '\"') }}",
+            "text": "{{ entry.text | replace('\n', '\\n') | replace('"', '\"') }}"
         }{% if not loop.last %},{% endif %}
         {% endfor %}
     ];
@@ -238,8 +251,10 @@
         sliderValue.textContent = date.toLocaleString();
         timestampImage.src = `/static/${item.filename}`;
         appNameLabel.textContent = item.app;
+        document.getElementById("appCategory").textContent = item.category;
         winTitleLabel.textContent = item.title;
         noteField.value = item.notes;
+        document.getElementById("exportBtn").href = `/export/pdf/${item.id}`;
     });
 
     noteField.addEventListener('blur', async function() {
@@ -265,6 +280,20 @@
             console.error('Error updating notes:', error);
         }
     });
+
+    function copyCurrentText() {
+        const index = parseInt(slider.value);
+        const item = data[index];
+        if (item.text) {
+            navigator.clipboard.writeText(item.text).then(() => {
+                alert('Text copied to clipboard!');
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+            });
+        } else {
+            alert('No text found in this snapshot.');
+        }
+    }
 
     async function deleteCurrentEntry() {
         const index = parseInt(slider.value);

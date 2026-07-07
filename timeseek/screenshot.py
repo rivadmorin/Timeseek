@@ -13,7 +13,8 @@ from timeseek.config import (
     ACTIVE_SLEEP,
     SCREENSHOT_QUALITY,
     DEFAULT_SIMILARITY_THRESHOLD,
-    BLACKLISTED_APPS
+    BLACKLISTED_APPS,
+    BLACKLISTED_KEYWORDS
 )
 from timeseek.database import insert_entry
 from timeseek.nlp import get_embedding
@@ -107,6 +108,15 @@ def record_screenshots_thread(on_new_entry: Optional[Callable] = None) -> None:
             last_screenshot = last_screenshots[i]
 
             if not is_similar(current_screenshot, last_screenshot):
+                text: str = extract_text_from_image(current_screenshot)
+
+                # Keyword Blacklist Check
+                if BLACKLISTED_KEYWORDS:
+                    text_lower = text.lower()
+                    if any(kw in text_lower for kw in BLACKLISTED_KEYWORDS):
+                        print(f"Privacy Filter: Keyword blacklist hit. Skipping snapshot.")
+                        continue
+
                 last_screenshots[i] = current_screenshot
                 image = Image.fromarray(current_screenshot)
                 timestamp = int(time.time())
@@ -115,7 +125,6 @@ def record_screenshots_thread(on_new_entry: Optional[Callable] = None) -> None:
 
                 image.save(filepath, format="webp", quality=SCREENSHOT_QUALITY)
 
-                text: str = extract_text_from_image(current_screenshot)
                 if text.strip():
                     embedding: np.ndarray = get_embedding(text)
                     active_window_title: str = get_active_window_title() or "Unknown Title"

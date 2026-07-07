@@ -199,6 +199,19 @@
         margin: 16px 0 8px 0;
         text-transform: uppercase;
         letter-spacing: 0.5px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .copy-chip {
+        background-color: var(--md-sys-color-primary-container);
+        color: var(--md-sys-color-on-primary-container);
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 10px;
+        cursor: pointer;
+        text-transform: none;
     }
 
     .dialog-text-content {
@@ -257,8 +270,11 @@
                 {% endif %}
 
                 {% if entry.text %}
-                <div class="dialog-section-label">OCR Text</div>
-                <div class="dialog-text-content">{{ entry.text }}</div>
+                <div class="dialog-section-label">
+                    OCR Text
+                    <span class="copy-chip" onclick="copyText('{{ entry.id }}')">Copy</span>
+                </div>
+                <div class="dialog-text-content" id="ocr-text-{{ entry.id }}">{{ entry.text }}</div>
                 {% endif %}
             </div>
         </div>
@@ -273,6 +289,13 @@
 
     function closeModal(id) {
         document.getElementById(id).close();
+    }
+
+    function copyText(id) {
+        const text = document.getElementById(`ocr-text-${id}`).innerText;
+        navigator.clipboard.writeText(text).then(() => {
+            alert('Text copied!');
+        });
     }
 
     async function deleteEntry(id) {

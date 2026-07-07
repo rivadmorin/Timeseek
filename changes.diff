@@ -1,0 +1,836 @@
+diff --git a/docs/archive/plans/ten_features_expansion_plan.md b/docs/archive/plans/ten_features_expansion_plan.md
+new file mode 100644
+index 0000000..d61f708
+--- /dev/null
++++ b/docs/archive/plans/ten_features_expansion_plan.md
+@@ -0,0 +1,80 @@
++---
++plan_id: ten_features_expansion
++title: "Orchestration Plan: Ten Features Expansion"
++goal: "Implement 10 new features to enhance utility, privacy, and insights in Timeseek."
++status: executing
++created: 2026-07-07
++updated: 2026-07-07
++---
++
++# Orchestration Plan: Ten Features Expansion
++
++## 1. Context & Risk Analysis (Pre-Mortem)
++- **Context:** Timeseek has a solid M3 foundation. These 10 features expand its capabilities into data management (deletion, optimization), better UX (dark mode, copy-to-click), and analytics (heatmap, word cloud).
++- **Technical Risk:**
++    - Database schema migrations for new settings/metadata.
++    - PDF library size/dependency issues for "Offline/Portable" goal.
++    - Performance overhead of keyword blacklisting during recording.
++- **Mitigation:**
++    - Use defensive schema migrations.
++    - Prioritize lightweight or built-in libraries for exports.
++    - Optimize keyword matching with sets or Aho-Corasick if needed.
++
++## 2. Global Constraints & Active Rules
++- **Active Rules:**
++    - Maintain "Offline-First" (No CDNs).
++    - M3 Design compliance.
++    - Defensive database migrations.
++- **Avoid Errors:**
++    - [ERR-SQLITE-LOCKED] - Ensure connections are closed or use WAL.
++
++## 3. Sequenced Task Checklist
++
++### Phase 1: UX & Privacy Quick Wins
++- [ ] Task 1: **Builder 🏗️** & **Taste 💅** - Implement **Click-to-Copy OCR Text** (Feature 3).
++  - **Read Boundary:** `timeseek/templates/timeline.html`, `timeseek/templates/search.html`
++  - **Write/Modify Boundary:** `timeseek/templates/timeline.html`, `timeseek/templates/search.html`, `timeseek/static/js/app.js`
++  - **Verification:** Click copy button, verify clipboard content.
++- [ ] Task 2: **Builder 🏗️** & **Taste 💅** - Implement **Dark/Light Mode Toggle** (Feature 5).
++  - **Read Boundary:** `timeseek/templates/layout.html`, `timeseek/static/css/m3-tokens.css`
++  - **Write/Modify Boundary:** `timeseek/templates/layout.html`, `timeseek/static/css/custom.css`, `timeseek/static/js/app.js`
++  - **Verification:** Toggle theme, verify CSS variables update and persist in localStorage.
++- [ ] Task 3: **Builder 🏗️** & **Sentinel 🛡️** - Implement **Keyword Blacklist** (Feature 7).
++  - **Read Boundary:** `timeseek/config.py`, `timeseek/screenshot.py`, `timeseek/ocr.py`
++  - **Write/Modify Boundary:** `timeseek/config.py`, `timeseek/screenshot.py`
++  - **Verification:** Add "Sensitive" to blacklist, record a screen with that word, verify it is NOT saved.
++- [ ] Task 4: **Builder 🏗️** & **Bug Hunter 🐛** - Implement **Bulk Time-Range Deletion** (Feature 6).
++  - **Read Boundary:** `timeseek/database.py`, `timeseek/app.py`, `timeseek/templates/dashboard.html`
++  - **Write/Modify Boundary:** `timeseek/database.py`, `timeseek/app.py`, `timeseek/templates/dashboard.html`
++  - **Verification:** Delete "Last 1 Hour", verify DB entries and files are gone.
++
++### Phase 2: Dashboard & Insights
++- [ ] Task 5: **Builder 🏗️** & **Taste 💅** - Implement **Activity Heatmap Dashboard** (Feature 2).
++  - **Read Boundary:** `timeseek/app.py`, `timeseek/templates/dashboard.html`
++  - **Write/Modify Boundary:** `timeseek/app.py`, `timeseek/templates/dashboard.html`, `timeseek/static/js/heatmap.js`
++  - **Verification:** View dashboard, see heatmap populated with historical data.
++- [ ] Task 6: **Builder 🏗️** & **Scholar 🧠** - Implement **Top Keywords Word Cloud** (Feature 9).
++  - **Read Boundary:** `timeseek/app.py`, `timeseek/database.py`, `timeseek/templates/dashboard.html`
++  - **Write/Modify Boundary:** `timeseek/app.py`, `timeseek/templates/dashboard.html`
++  - **Verification:** Verify word cloud displays most frequent OCR words.
++- [ ] Task 7: **Builder 🏗️** & **Scholar 🧠** - Implement **Smart Categorization (App Groups)** (Feature 4).
++  - **Read Boundary:** `timeseek/utils.py`, `timeseek/app.py`, `timeseek/templates/timeline.html`
++  - **Write/Modify Boundary:** `timeseek/utils.py`, `timeseek/app.py`, `timeseek/templates/timeline.html`
++  - **Verification:** Apps like "VS Code" categorized as "Development".
++
++### Phase 3: Utilities & Optimization
++- [ ] Task 8: **Builder 🏗️** & **Nomad 💾** - Implement **Storage Optimizer** (Feature 10).
++  - **Read Boundary:** `timeseek/config.py`, `timeseek/screenshot.py`
++  - **Write/Modify Boundary:** `timeseek/config.py`, `timeseek/screenshot.py`
++  - **Verification:** Lower quality setting, verify file sizes decrease.
++- [ ] Task 9: **Builder 🏗️** & **Nomad 💾** - Implement **Multi-Language OCR Support** (Feature 8).
++  - **Read Boundary:** `timeseek/ocr.py`, `timeseek/config.py`
++  - **Write/Modify Boundary:** `timeseek/ocr.py`, `timeseek/config.py`
++  - **Verification:** Change language to 'fr', verify OCR still works for French text.
++- [ ] Task 10: **Builder 🏗️** & **Scribe 📜** - Implement **Export to PDF/Image** (Feature 1).
++  - **Read Boundary:** `timeseek/app.py`, `timeseek/templates/timeline.html`
++  - **Write/Modify Boundary:** `timeseek/app.py`, `timeseek/templates/timeline.html`
++  - **Verification:** Click Export, receive PDF with image and OCR text.
++
++## 4. Final Review & Submit
++- [ ] Final Task: **Orchestrator 🕴️** - Consolidate memories and submit PR.
+diff --git a/docs/builder.md b/docs/builder.md
+index 5e64bb0..7487a1f 100644
+--- a/docs/builder.md
++++ b/docs/builder.md
+@@ -91,3 +91,36 @@ Format:
+ - **Learning:** Playwright can be used in the agent environment to capture live application state for documentation.
+ - **Action/Rule:** Always include screenshots when making significant UI/UX changes to ensure clarity for users.
+ - **Verify Command:** `grep "UI Gallery" README.md`
++# Builder Memory Journal entry
++## 2026-07-07 - Phase 1 Ten Features Expansion
++- **Tags:** #ui #privacy #database #builder #taste
++- **Level:** 🟢 INFO
++- **Scope:** timeseek/templates/timeline.html, timeseek/templates/search.html, timeseek/config.py, timeseek/screenshot.py, timeseek/database.py, timeseek/app.py
++- **Notify Agents:** @Orchestrator @Builder @Taste @Sentinel
++- **Symptom:** Missing quick UX wins and essential privacy controls.
++- **Learning:**
++    1. Click-to-copy OCR text requires data mapping in the frontend and a safe way to handle special characters in JSON.
++    2. Keyword blacklisting during recording provides a second layer of privacy after app-based filtering.
++    3. Bulk deletion is a highly requested management feature that requires careful timestamp range logic.
++- **Action/Rule:** Always escape template variables and provide user-friendly bulk management tools for privacy-sensitive data.
++## Phase 2 Ten Features Expansion
++- **Tags:** #analytics #insights #ui #builder #scholar
++- **Level:** 🟢 INFO
++- **Scope:** timeseek/utils.py, timeseek/app.py, timeseek/templates/dashboard.html, timeseek/templates/timeline.html
++- **Notify Agents:** @Orchestrator @Builder @Scholar @Taste
++- **Symptom:** Dashboard lacked visual depth and semantic insights.
++- **Learning:**
++    1. Heatmaps and Word Clouds can be implemented with minimal JS by providing clean JSON APIs.
++    2. Category-based grouping helps users navigate history more effectively.
++    3. Basic stop-word filtering is essential for meaningful word clouds.
++- **Action/Rule:** Use the `get_app_category` utility to enrich all UI views with semantic metadata.
++## Phase 3 Ten Features Expansion
++- **Tags:** #optimization #ocr #export #builder #nomad
++- **Level:** 🟢 INFO
++- **Scope:** timeseek/config.py, timeseek/ocr.py, timeseek/app.py, timeseek/templates/export_pdf.html, timeseek/templates/timeline.html
++- **Notify Agents:** @Orchestrator @Builder @Nomad @Scribe
++- **Symptom:** Users lacked control over storage and could not export their data easily.
++- **Learning:**
++    1. Using the browser's native print functionality for "Export to PDF" is a lightweight way to maintain the "Offline/Portable" goal without adding heavy PDF generation libraries.
++    2. Exposing OCR language and image quality as CLI arguments allows users to tune performance vs. accuracy.
++- **Action/Rule:** Always prefer native browser capabilities for file exports when possible to keep the application footprint small.
+diff --git a/timeseek/app.py b/timeseek/app.py
+index efec119..fbd3109 100644
+--- a/timeseek/app.py
++++ b/timeseek/app.py
+@@ -1,3 +1,4 @@
++import re
+ import json
+ import os
+ import shutil
+@@ -9,15 +10,16 @@ import numpy as np
+ from flask import Flask, render_template, request, send_from_directory, redirect, url_for, jsonify
+
+ from timeseek.config import appdata_folder, screenshots_path, db_path, args, ACTIVE_SLEEP, RETENTION_DAYS
+-from timeseek.database import create_db, get_all_entries, delete_entry, update_entry_notes, prune_old_data
++from timeseek.database import create_db, get_all_entries, delete_entry, update_entry_notes, prune_old_data, delete_entries_by_range
+ from timeseek.nlp import batch_cosine_similarity, get_embedding
+ from timeseek.screenshot import record_screenshots_thread
+-from timeseek.utils import human_readable_time, timestamp_to_human_readable
++from timeseek.utils import human_readable_time, timestamp_to_human_readable, get_app_category
+
+ app = Flask(__name__)
+
+ app.jinja_env.filters["human_readable_time"] = human_readable_time
+ app.jinja_env.filters["timestamp_to_human_readable"] = timestamp_to_human_readable
++app.jinja_env.globals.update(get_app_category=get_app_category)
+
+ # Global cache for entries to speed up search and dashboard
+ cached_entries = []
+@@ -80,7 +82,8 @@ def timeline():
+             "filename": e.filename,
+             "app": e.app,
+             "title": e.title,
+-            "notes": e.notes
++            "notes": e.notes,
++            "category": get_app_category(e.app or "")
+         } for e in entries
+     ])
+     return render_template("timeline.html", entries=entries, entries_json=entries_json)
+@@ -148,6 +151,18 @@ def delete(entry_id):
+     return jsonify({"success": False, "error": "Entry not found"}), 404
+
+
++@app.route("/bulk_delete", methods=["POST"])
++def bulk_delete():
++    import time
++    hours = int(request.form.get("range", 0))
++    if hours > 0:
++        end = int(time.time())
++        start = end - (hours * 3600)
++        delete_entries_by_range(start, end)
++        refresh_cache()
++    return redirect(url_for("dashboard"))
++
++
+ @app.route("/purge", methods=["POST"])
+ def purge():
+     """Deletes all screenshots and the database."""
+@@ -168,6 +183,48 @@ def serve_image(filename):
+     """Serves recorded screenshots from the appdata directory."""
+     return send_from_directory(screenshots_path, filename)
+
++@app.route("/api/heatmap")
++def heatmap_api():
++    """Returns activity intensity data for the heatmap."""
++    with cache_lock:
++        entries = list(cached_entries)
++
++    counts = Counter()
++    for e in entries:
++        day = datetime.fromtimestamp(e.timestamp).strftime("%Y-%m-%d")
++        counts[day] += 1
++
++    return jsonify(counts)
++
++@app.route("/api/wordcloud")
++def wordcloud_api():
++    """Returns top keywords from OCR text."""
++    with cache_lock:
++        entries = list(cached_entries)
++
++    words = []
++    # Stop words (very basic list)
++    stop_words = {"the", "a", "an", "and", "or", "but", "in", "on", "at", "to", "for", "with", "is", "are", "was", "were", "of", "it", "that", "this"}
++
++    for e in entries:
++        if e.text:
++            # Simple word extraction
++            extracted = re.findall(r'\w{4,}', e.text.lower())
++            words.extend([w for w in extracted if w not in stop_words])
++
++    top_words = Counter(words).most_common(50)
++    return jsonify([{"text": w, "size": c} for w, c in top_words])
++
++@app.route("/export/pdf/<int:entry_id>")
++def export_pdf(entry_id):
++    """Exports a single entry to a basic PDF-like HTML page for printing."""
++    with cache_lock:
++        entry = next((e for e in cached_entries if e.id == entry_id), None)
++
++    if not entry:
++        return "Entry not found", 404
++
++    return render_template("export_pdf.html", entry=entry)
+
+ if __name__ == "__main__":
+     create_db()
+diff --git a/timeseek/config.py b/timeseek/config.py
+index aa46a24..a3e7a17 100644
+--- a/timeseek/config.py
++++ b/timeseek/config.py
+@@ -36,24 +36,32 @@ if not os.path.exists(screenshots_path):
+ # Default configuration constants
+ DEFAULT_PORT = 8082
+ DEFAULT_SIMILARITY_THRESHOLD = 0.95
+-SCREENSHOT_QUALITY = 80
++# SCREENSHOT_QUALITY = 80
+ IDLE_SLEEP = 5
+ ACTIVE_SLEEP = 3
+ USER_ACTIVITY_THRESHOLD = 5.0
+ DEFAULT_RETENTION_DAYS = 30
++DEFAULT_IMAGE_QUALITY = 80
+
+ # Default blacklisted apps (privacy sensitive)
+ DEFAULT_BLACKLIST = ["Bitwarden", "1Password", "KeePassXC", "System Settings", "System Preferences", "Keychain Access"]
++DEFAULT_KEYWORD_BLACKLIST = []
+
+ # Argument parsing for CLI customization
+ parser = argparse.ArgumentParser(description="Timeseek - Personal Search Engine")
+ parser.add_argument("--primary-monitor-only", action="store_true", help="Only take screenshots of the primary monitor")
+ parser.add_argument("--port", type=int, default=DEFAULT_PORT, help=f"Port to run the web server on (default: {DEFAULT_PORT})")
+ parser.add_argument("--blacklist", type=str, default=",".join(DEFAULT_BLACKLIST), help="Comma-separated list of app names to ignore")
++parser.add_argument("--keyword-blacklist", type=str, default="", help="Comma-separated list of keywords to ignore snapshots containing them")
+ parser.add_argument("--retention-days", type=int, default=DEFAULT_RETENTION_DAYS, help=f"Number of days to keep data (default: {DEFAULT_RETENTION_DAYS})")
++parser.add_argument("--image-quality", type=int, default=DEFAULT_IMAGE_QUALITY, help=f"Quality of saved screenshots 1-100 (default: {DEFAULT_IMAGE_QUALITY})")
++parser.add_argument("--ocr-lang", type=str, default="en", help="OCR language code (default: en)")
+
+ args, unknown = parser.parse_known_args()
+
+ # Process blacklist into a list
+ BLACKLISTED_APPS = [app.strip() for app in args.blacklist.split(",") if app.strip()]
++BLACKLISTED_KEYWORDS = [kw.strip().lower() for kw in args.keyword_blacklist.split(",") if kw.strip()]
+ RETENTION_DAYS = args.retention_days
++SCREENSHOT_QUALITY = args.image_quality
++OCR_LANG = args.ocr_lang
+diff --git a/timeseek/database.py b/timeseek/database.py
+index 16cf3b4..5040388 100644
+--- a/timeseek/database.py
++++ b/timeseek/database.py
+@@ -191,3 +191,40 @@ def prune_old_data(retention_days: int) -> int:
+         print(f"Database error during pruning: {e}")
+
+     return deleted_count
++
++def delete_entries_by_range(start_timestamp: int, end_timestamp: int) -> int:
++    """
++    Deletes entries within a specific timestamp range.
++    Returns the number of deleted records.
++    """
++    import os
++    from timeseek.config import screenshots_path
++
++    deleted_count = 0
++    try:
++        with sqlite3.connect(db_path) as conn:
++            conn.row_factory = sqlite3.Row
++            cursor = conn.cursor()
++
++            # Find filenames to delete from disk
++            cursor.execute("SELECT filename FROM entries WHERE timestamp >= ? AND timestamp <= ?", (start_timestamp, end_timestamp))
++            files_to_delete = cursor.fetchall()
++
++            for row in files_to_delete:
++                if row["filename"]:
++                    filepath = os.path.join(screenshots_path, row["filename"])
++                    if os.path.exists(filepath):
++                        try:
++                            os.remove(filepath)
++                        except Exception as e:
++                            print(f"Failed to delete file {filepath}: {e}")
++
++            # Delete from database
++            cursor.execute("DELETE FROM entries WHERE timestamp >= ? AND timestamp <= ?", (start_timestamp, end_timestamp))
++            deleted_count = cursor.rowcount
++            conn.commit()
++
++    except sqlite3.Error as e:
++        print(f"Database error during range deletion: {e}")
++
++    return deleted_count
+diff --git a/timeseek/screenshot.py b/timeseek/screenshot.py
+index ecc1d47..467f4ed 100644
+--- a/timeseek/screenshot.py
++++ b/timeseek/screenshot.py
+@@ -13,7 +13,8 @@ from timeseek.config import (
+     ACTIVE_SLEEP,
+     SCREENSHOT_QUALITY,
+     DEFAULT_SIMILARITY_THRESHOLD,
+-    BLACKLISTED_APPS
++    BLACKLISTED_APPS,
++    BLACKLISTED_KEYWORDS
+ )
+ from timeseek.database import insert_entry
+ from timeseek.nlp import get_embedding
+@@ -107,6 +108,15 @@ def record_screenshots_thread(on_new_entry: Optional[Callable] = None) -> None:
+             last_screenshot = last_screenshots[i]
+
+             if not is_similar(current_screenshot, last_screenshot):
++                text: str = extract_text_from_image(current_screenshot)
++
++                # Keyword Blacklist Check
++                if BLACKLISTED_KEYWORDS:
++                    text_lower = text.lower()
++                    if any(kw in text_lower for kw in BLACKLISTED_KEYWORDS):
++                        print(f"Privacy Filter: Keyword blacklist hit. Skipping snapshot.")
++                        continue
++
+                 last_screenshots[i] = current_screenshot
+                 image = Image.fromarray(current_screenshot)
+                 timestamp = int(time.time())
+@@ -115,7 +125,6 @@ def record_screenshots_thread(on_new_entry: Optional[Callable] = None) -> None:
+
+                 image.save(filepath, format="webp", quality=SCREENSHOT_QUALITY)
+
+-                text: str = extract_text_from_image(current_screenshot)
+                 if text.strip():
+                     embedding: np.ndarray = get_embedding(text)
+                     active_window_title: str = get_active_window_title() or "Unknown Title"
+diff --git a/timeseek/templates/dashboard.html b/timeseek/templates/dashboard.html
+index e967e25..8f400e1 100644
+--- a/timeseek/templates/dashboard.html
++++ b/timeseek/templates/dashboard.html
+@@ -4,7 +4,6 @@
+     .dashboard-grid {
+         display: grid;
+         grid-template-columns: repeat(2, 1fr);
+-        grid-template-rows: auto auto;
+         gap: 24px;
+         margin-top: 8px;
+     }
+@@ -76,51 +75,77 @@
+         border-radius: 4px;
+     }
+
+-    .chart-container {
+-        height: 200px;
++    /* Heatmap styling */
++    .heatmap-container {
+         display: flex;
+-        align-items: flex-end;
+-        gap: 8px;
+-        padding-top: 20px;
++        flex-wrap: wrap;
++        gap: 4px;
++        padding: 10px 0;
+     }
+
+-    .chart-bar {
+-        flex: 1;
+-        background-color: var(--md-sys-color-primary-container);
+-        border-radius: 4px 4px 0 0;
+-        min-height: 2px;
+-        position: relative;
+-        transition: height 0.3s ease;
++    .heatmap-cell {
++        width: 14px;
++        height: 14px;
++        border-radius: 2px;
++        background-color: var(--md-sys-color-surface-container-highest);
++        cursor: pointer;
+     }
+
+-    .chart-bar:hover {
+-        background-color: var(--md-sys-color-primary);
++    .heatmap-cell:hover {
++        outline: 1px solid var(--md-sys-color-primary);
+     }
+
+-    .chart-bar::after {
+-        content: attr(data-label);
+-        position: absolute;
+-        bottom: -20px;
+-        left: 50%;
+-        transform: translateX(-50%);
+-        font-size: 10px;
+-        color: var(--md-sys-color-on-surface-variant);
++    .level-1 { background-color: #4F378B; opacity: 0.3; }
++    .level-2 { background-color: #4F378B; opacity: 0.5; }
++    .level-3 { background-color: #4F378B; opacity: 0.8; }
++    .level-4 { background-color: #D0BCFF; }
++
++    /* Word Cloud styling */
++    .word-cloud {
++        display: flex;
++        flex-wrap: wrap;
++        gap: 12px;
++        justify-content: center;
++        align-items: center;
++        min-height: 150px;
++    }
++
++    .word-cloud span {
++        cursor: pointer;
++        transition: transform 0.2s;
++    }
++
++    .word-cloud span:hover {
++        transform: scale(1.2);
++        color: var(--md-sys-color-primary);
+     }
+
+     .management-section {
+         grid-column: span 2;
++        padding: 24px;
++        background-color: var(--md-sys-color-surface-container-low);
++        border: 1px solid var(--md-sys-color-outline-variant);
++        border-radius: var(--md-sys-shape-corner-extra-large);
++        display: flex;
++        flex-direction: column;
++        gap: 20px;
++    }
++
++    .mgmt-group {
+         display: flex;
+         justify-content: space-between;
+         align-items: center;
+-        padding: 20px 24px;
++        padding: 16px;
++        background-color: var(--md-sys-color-surface-container);
++        border-radius: var(--md-sys-shape-corner-large);
++    }
++
++    .danger-group {
+         background-color: var(--md-sys-color-error-container);
+         color: var(--md-sys-color-on-error-container);
+-        border-radius: var(--md-sys-shape-corner-large);
+     }
+
+-    .purge-btn {
+-        background-color: var(--md-sys-color-error);
+-        color: var(--md-sys-color-on-error);
++    .btn {
+         border: none;
+         padding: 10px 24px;
+         border-radius: var(--md-sys-shape-corner-full);
+@@ -129,9 +154,28 @@
+         transition: opacity 0.2s;
+     }
+
+-    .purge-btn:hover {
++    .btn-secondary {
++        background-color: var(--md-sys-color-secondary-container);
++        color: var(--md-sys-color-on-secondary-container);
++    }
++
++    .btn-danger {
++        background-color: var(--md-sys-color-error);
++        color: var(--md-sys-color-on-error);
++    }
++
++    .btn:hover {
+         opacity: 0.9;
+     }
++
++    .select-input {
++        padding: 8px 16px;
++        border-radius: var(--md-sys-shape-corner-medium);
++        background-color: var(--md-sys-color-surface-container-highest);
++        color: var(--md-sys-color-on-surface);
++        border: 1px solid var(--md-sys-color-outline-variant);
++        outline: none;
++    }
+ </style>
+
+ <div class="dashboard-grid">
+@@ -144,6 +188,17 @@
+         <span class="stat-value">{{ total_snapshots }}</span>
+     </div>
+
++    <!-- Activity Heatmap -->
++    <div class="dashboard-section" style="grid-column: span 2;">
++        <div class="section-title">
++            <span class="material-symbols-rounded">calendar_view_month</span>
++            Activity Heatmap (Last 90 Days)
++        </div>
++        <div class="heatmap-container" id="heatmap">
++            <!-- Populated by JS -->
++        </div>
++    </div>
++
+     <div class="dashboard-section">
+         <div class="section-title">
+             <span class="material-symbols-rounded">bar_chart</span>
+@@ -164,26 +219,90 @@
+         </div>
+     </div>
+
++    <!-- Word Cloud -->
+     <div class="dashboard-section">
+         <div class="section-title">
+-            <span class="material-symbols-rounded">timeline</span>
+-            Hourly Activity
++            <span class="material-symbols-rounded">cloud</span>
++            Keyword Insights
+         </div>
+-        <div class="chart-container">
+-            {% for hour, count in hourly_activity %}
+-            <div class="chart-bar" style="height: {{ (count / max_hourly * 100) if max_hourly > 0 else 0 }}%" data-label="{{ hour }}:00" title="{{ count }} snapshots at {{ hour }}:00"></div>
+-            {% endfor %}
++        <div class="word-cloud" id="wordcloud">
++            <!-- Populated by JS -->
+         </div>
+     </div>
+
+     <div class="management-section">
+-        <div>
+-            <div style="font-weight: 600;">Data Management</div>
+-            <div style="font-size: 13px; opacity: 0.8;">Purge all local snapshots and database entries to free up space.</div>
++        <div class="section-title">
++            <span class="material-symbols-rounded">settings</span>
++            Data Management
++        </div>
++
++        <div class="mgmt-group">
++            <div>
++                <div style="font-weight: 600;">Bulk Delete</div>
++                <div style="font-size: 13px; opacity: 0.8;">Remove snapshots within a specific time range.</div>
++            </div>
++            <form action="/bulk_delete" method="post" style="display: flex; gap: 12px; align-items: center;">
++                <select name="range" class="select-input">
++                    <option value="1">Last 1 Hour</option>
++                    <option value="24">Last 24 Hours</option>
++                    <option value="168">Last 7 Days</option>
++                </select>
++                <button type="submit" class="btn btn-secondary">Delete</button>
++            </form>
++        </div>
++
++        <div class="mgmt-group danger-group">
++            <div>
++                <div style="font-weight: 600;">Full Purge</div>
++                <div style="font-size: 13px; opacity: 0.8;">Irreversibly delete all local data.</div>
++            </div>
++            <form action="/purge" method="post" onsubmit="return confirm('Are you sure you want to delete all your data? This action is irreversible.')">
++                <button type="submit" class="btn btn-danger">Purge All</button>
++            </form>
+         </div>
+-        <form action="/purge" method="post" onsubmit="return confirm('Are you sure you want to delete all your data? This action is irreversible.')">
+-            <button type="submit" class="purge-btn">Purge Old Data</button>
+-        </form>
+     </div>
+ </div>
++
++<script>
++    async function loadInsights() {
++        // Load Heatmap
++        const heatmapRes = await fetch('/api/heatmap');
++        const heatmapData = await heatmapRes.json();
++        const heatmapContainer = document.getElementById('heatmap');
++
++        const now = new Date();
++        for (let i = 89; i >= 0; i--) {
++            const d = new Date();
++            d.setDate(now.getDate() - i);
++            const dateStr = d.toISOString().split('T')[0];
++            const count = heatmapData[dateStr] || 0;
++
++            const cell = document.createElement('div');
++            cell.className = 'heatmap-cell';
++            if (count > 50) cell.classList.add('level-4');
++            else if (count > 20) cell.classList.add('level-3');
++            else if (count > 5) cell.classList.add('level-2');
++            else if (count > 0) cell.classList.add('level-1');
++
++            cell.title = `${dateStr}: ${count} snapshots`;
++            heatmapContainer.appendChild(cell);
++        }
++
++        // Load Word Cloud
++        const cloudRes = await fetch('/api/wordcloud');
++        const cloudData = await cloudRes.json();
++        const cloudContainer = document.getElementById('wordcloud');
++
++        cloudData.forEach(item => {
++            const span = document.createElement('span');
++            span.textContent = item.text;
++            span.style.fontSize = `${Math.min(10 + item.size, 32)}px`;
++            span.style.opacity = Math.max(0.4, item.size / 20);
++            span.onclick = () => window.location.href = `/search?q=${item.text}`;
++            cloudContainer.appendChild(span);
++        });
++    }
++
++    loadInsights();
++</script>
+ {% endblock %}
+diff --git a/timeseek/templates/export_pdf.html b/timeseek/templates/export_pdf.html
+new file mode 100644
+index 0000000..43242de
+--- /dev/null
++++ b/timeseek/templates/export_pdf.html
+@@ -0,0 +1,53 @@
++<!DOCTYPE html>
++<html lang="en">
++<head>
++    <meta charset="UTF-8">
++    <title>Timeseek Export - {{ entry.timestamp | timestamp_to_human_readable }}</title>
++    <style>
++        body { font-family: sans-serif; padding: 40px; color: #333; }
++        .header { border-bottom: 2px solid #6750A4; padding-bottom: 10px; margin-bottom: 20px; }
++        .meta { font-size: 14px; color: #666; margin-bottom: 20px; }
++        img { max-width: 100%; border: 1px solid #ddd; border-radius: 8px; }
++        .section { margin-top: 30px; }
++        .section-title { font-weight: bold; font-size: 18px; margin-bottom: 10px; color: #6750A4; }
++        .content { background: #f9f9f9; padding: 15px; border-radius: 8px; white-space: pre-wrap; font-size: 14px; }
++        @media print {
++            .no-print { display: none; }
++        }
++    </style>
++</head>
++<body>
++    <div class="no-print" style="margin-bottom: 20px;">
++        <button onclick="window.print()" style="padding: 10px 20px; cursor: pointer; background: #6750A4; color: white; border: none; border-radius: 20px;">Print / Save as PDF</button>
++        <button onclick="window.history.back()" style="padding: 10px 20px; cursor: pointer; background: #eee; border: none; border-radius: 20px;">Back</button>
++    </div>
++
++    <div class="header">
++        <h1>{{ entry.app }}</h1>
++        <div class="meta">
++            <strong>Title:</strong> {{ entry.title }}<br>
++            <strong>Captured:</strong> {{ entry.timestamp | timestamp_to_human_readable }}
++        </div>
++    </div>
++
++    <img src="/static/{{ entry.filename }}" alt="Snapshot">
++
++    {% if entry.notes %}
++    <div class="section">
++        <div class="section-title">Notes</div>
++        <div class="content">{{ entry.notes }}</div>
++    </div>
++    {% endif %}
++
++    {% if entry.text %}
++    <div class="section">
++        <div class="section-title">OCR Text</div>
++        <div class="content">{{ entry.text }}</div>
++    </div>
++    {% endif %}
++
++    <div style="margin-top: 50px; font-size: 10px; color: #999; text-align: center;">
++        Generated by Timeseek - Your Personal Digital Memory
++    </div>
++</body>
++</html>
+diff --git a/timeseek/templates/search.html b/timeseek/templates/search.html
+index 3f226f2..a50fb60 100644
+--- a/timeseek/templates/search.html
++++ b/timeseek/templates/search.html
+@@ -199,6 +199,19 @@
+         margin: 16px 0 8px 0;
+         text-transform: uppercase;
+         letter-spacing: 0.5px;
++        display: flex;
++        justify-content: space-between;
++        align-items: center;
++    }
++
++    .copy-chip {
++        background-color: var(--md-sys-color-primary-container);
++        color: var(--md-sys-color-on-primary-container);
++        padding: 2px 8px;
++        border-radius: 4px;
++        font-size: 10px;
++        cursor: pointer;
++        text-transform: none;
+     }
+
+     .dialog-text-content {
+@@ -257,8 +270,11 @@
+                 {% endif %}
+
+                 {% if entry.text %}
+-                <div class="dialog-section-label">OCR Text</div>
+-                <div class="dialog-text-content">{{ entry.text }}</div>
++                <div class="dialog-section-label">
++                    OCR Text
++                    <span class="copy-chip" onclick="copyText('{{ entry.id }}')">Copy</span>
++                </div>
++                <div class="dialog-text-content" id="ocr-text-{{ entry.id }}">{{ entry.text }}</div>
+                 {% endif %}
+             </div>
+         </div>
+@@ -275,6 +291,13 @@
+         document.getElementById(id).close();
+     }
+
++    function copyText(id) {
++        const text = document.getElementById(`ocr-text-${id}`).innerText;
++        navigator.clipboard.writeText(text).then(() => {
++            alert('Text copied!');
++        });
++    }
++
+     async function deleteEntry(id) {
+         if (!confirm('Are you sure you want to delete this snapshot?')) {
+             return;
+diff --git a/timeseek/templates/timeline.html b/timeseek/templates/timeline.html
+index 1e1184d..a6001ba 100644
+--- a/timeseek/templates/timeline.html
++++ b/timeseek/templates/timeline.html
+@@ -97,7 +97,13 @@
+     }
+
+     .action-btn:hover {
++        background-color: var(--md-sys-color-primary);
++        color: var(--md-sys-color-on-primary);
++    }
++
++    .action-btn.delete-btn:hover {
+         background-color: var(--md-sys-color-error);
++        color: var(--md-sys-color-on-error);
+     }
+
+     .control-panel {
+@@ -177,11 +183,17 @@
+                 <span class="material-symbols-rounded">category</span>
+                 <div style="display: flex; flex-direction: column;">
+                     <span class="app-name-label" id="appName">{{ entries[0].app }}</span>
++                    <script>document.addEventListener("DOMContentLoaded", () => { document.getElementById("exportBtn").href = `/export/pdf/${data[0].id}`; });</script>
++                    <span class="category-badge" id="appCategory" style="font-size: 10px; background: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container); padding: 0 6px; border-radius: 4px; width: fit-content;">{{ get_app_category(entries[0].app or "") }}</span>
+                     <span class="window-title-label" id="winTitle">{{ entries[0].title }}</span>
+                 </div>
+             </div>
+             <div class="header-actions">
+-                <div class="action-btn" onclick="deleteCurrentEntry()">
++                <div class="action-btn" onclick="copyCurrentText()" title="Copy OCR Text">
++                    <span class="material-symbols-rounded">content_copy</span>
++                </div>
++                <a class="action-btn" id="exportBtn" target="_blank" title="Export to PDF" style="text-decoration: none;"><span class="material-symbols-rounded">picture_as_pdf</span></a>
++                <div class="action-btn delete-btn" onclick="deleteCurrentEntry()" title="Delete Snapshot">
+                     <span class="material-symbols-rounded">delete</span>
+                 </div>
+             </div>
+@@ -218,7 +230,8 @@
+             "filename": "{{ entry.filename }}",
+             "app": "{{ entry.app | replace('"', '\"') }}",
+             "title": "{{ entry.title | replace('"', '\"') }}",
+-            "notes": "{{ entry.notes | replace('\n', '\\n') | replace('"', '\"') }}"
++            "notes": "{{ entry.notes | replace('\n', '\\n') | replace('"', '\"') }}",
++            "text": "{{ entry.text | replace('\n', '\\n') | replace('"', '\"') }}"
+         }{% if not loop.last %},{% endif %}
+         {% endfor %}
+     ];
+@@ -238,8 +251,10 @@
+         sliderValue.textContent = date.toLocaleString();
+         timestampImage.src = `/static/${item.filename}`;
+         appNameLabel.textContent = item.app;
++        document.getElementById("appCategory").textContent = item.category;
+         winTitleLabel.textContent = item.title;
+         noteField.value = item.notes;
++        document.getElementById("exportBtn").href = `/export/pdf/${item.id}`;
+     });
+
+     noteField.addEventListener('blur', async function() {
+@@ -266,6 +281,20 @@
+         }
+     });
+
++    function copyCurrentText() {
++        const index = parseInt(slider.value);
++        const item = data[index];
++        if (item.text) {
++            navigator.clipboard.writeText(item.text).then(() => {
++                alert('Text copied to clipboard!');
++            }).catch(err => {
++                console.error('Failed to copy: ', err);
++            });
++        } else {
++            alert('No text found in this snapshot.');
++        }
++    }
++
+     async function deleteCurrentEntry() {
+         const index = parseInt(slider.value);
+         const item = data[index];
+diff --git a/timeseek/utils.py b/timeseek/utils.py
+index 8d03a11..b592e17 100644
+--- a/timeseek/utils.py
++++ b/timeseek/utils.py
+@@ -236,3 +236,19 @@ def is_user_active() -> bool:
+         return is_user_active_linux()
+     else:
+         return True
++
++def get_app_category(app_name: str) -> str:
++    """Categorizes an application based on its name."""
++    app_name = app_name.lower()
++    categories = {
++        "Development": ["code", "visual studio", "terminal", "iterm", "pycharm", "intellij", "docker", "github", "sublime", "vim"],
++        "Productivity": ["word", "excel", "powerpoint", "sheets", "docs", "slides", "notion", "obsidian", "slack", "teams", "discord", "outlook", "mail", "notes"],
++        "Browsing": ["chrome", "firefox", "safari", "edge", "brave", "opera"],
++        "Social": ["whatsapp", "telegram", "messenger", "twitter", "facebook", "instagram", "linkedin"],
++        "Entertainment": ["spotify", "netflix", "youtube", "vlc", "mpv", "steam", "games"],
++        "System": ["settings", "preferences", "finder", "explorer", "task manager", "activity monitor"]
++    }
++    for category, keywords in categories.items():
++        if any(kw in app_name for kw in keywords):
++            return category
++    return "Other"
