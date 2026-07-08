@@ -10,7 +10,7 @@ import numpy as np
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from timeseek.database import create_db, insert_entry, get_all_entries, get_timestamps, Entry
+from timeseek.database import create_db, insert_entry, get_all_entries, get_timestamps, delete_entries_by_app, toggle_favorite, Entry
 from timeseek.config import appdata_folder, db_path
 
 class TestDatabase(unittest.TestCase):
@@ -116,6 +116,45 @@ class TestDatabase(unittest.TestCase):
         self.assertEqual(timestamps_data[1]['timestamp'], ts1)
         self.assertEqual(timestamps_data[2]['timestamp'], ts3)
         self.assertEqual(timestamps_data[0]['filename'], "f2.webp")
+
+
+    def test_toggle_favorite(self):
+        ts = int(time.time())
+        embedding = np.array([0.1, 0.2, 0.3], dtype=np.float32)
+        sample_entry = {"text": "T1", "timestamp": ts, "embedding": embedding, "app": "Test App", "title": "Test Title", "filename": "test.webp"}
+        insert_entry(**sample_entry)
+        entries = get_all_entries()
+        self.assertEqual(len(entries), 1)
+        entry_id = entries[0].id
+        self.assertFalse(entries[0].is_favorite)
+
+        self.assertTrue(toggle_favorite(entry_id))
+        entries = get_all_entries()
+        self.assertTrue(entries[0].is_favorite)
+
+        self.assertTrue(toggle_favorite(entry_id))
+        entries = get_all_entries()
+        self.assertFalse(entries[0].is_favorite)
+
+    def test_delete_entries_by_app(self):
+        ts = int(time.time())
+        embedding = np.array([0.1, 0.2, 0.3], dtype=np.float32)
+        sample_entry = {"text": "T1", "timestamp": ts, "embedding": embedding, "app": "Test App", "title": "Test Title", "filename": "test.webp"}
+        insert_entry(**sample_entry)
+        sample_entry_2 = sample_entry.copy()
+        sample_entry_2["timestamp"] = 1234567891
+        sample_entry_2["filename"] = "test2.webp"
+        sample_entry_2["app"] = "Another App"
+        insert_entry(**sample_entry_2)
+
+        entries = get_all_entries()
+        self.assertEqual(len(entries), 2)
+
+        count = delete_entries_by_app("Test App")
+        self.assertEqual(count, 1)
+        entries = get_all_entries()
+        self.assertEqual(len(entries), 1)
+        self.assertEqual(entries[0].app, "Another App")
 
 if __name__ == '__main__':
     unittest.main()

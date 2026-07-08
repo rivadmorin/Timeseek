@@ -19,6 +19,7 @@ from timeseek.config import (
 from timeseek.database import insert_entry
 from timeseek.nlp import get_embedding
 from timeseek.ocr import extract_text_from_image
+from timeseek.state import state
 from timeseek.utils import (
     get_active_app_name,
     get_active_window_title,
@@ -86,6 +87,10 @@ def record_screenshots_thread(on_new_entry: Optional[Callable] = None) -> None:
     last_screenshots: List[np.ndarray] = take_screenshots()
 
     while True:
+        if state.is_paused:
+            time.sleep(IDLE_SLEEP)
+            continue
+
         if not is_user_active():
             time.sleep(IDLE_SLEEP)
             continue

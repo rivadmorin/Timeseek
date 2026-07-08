@@ -73,8 +73,12 @@ def dashboard():
 @app.route("/timeline")
 def timeline():
     """Renders the timeline view showing all recorded moments."""
+    app_filter = request.args.get("app", "")
     with cache_lock:
         entries = list(cached_entries)
+
+    if app_filter:
+        entries = [e for e in entries if e.app == app_filter]
 
     entries_json = json.dumps([
         {

@@ -6,7 +6,7 @@ from typing import Any, List, Optional, Tuple
 from timeseek.config import db_path
 
 # Define the structure of a database entry using namedtuple
-Entry = namedtuple("Entry", ["id", "app", "title", "text", "timestamp", "embedding", "filename", "notes"])
+Entry = namedtuple("Entry", ["id", "app", "title", "text", "timestamp", "embedding", "filename", "notes", "is_favorite"])
 
 
 def create_db() -> None:
@@ -39,6 +39,10 @@ def create_db() -> None:
                 print("Migrating database: Adding 'notes' column.")
                 cursor.execute("ALTER TABLE entries ADD COLUMN notes TEXT DEFAULT ''")
 
+            if "is_favorite" not in columns:
+                print("Migrating database: Adding 'is_favorite' column.")
+                cursor.execute("ALTER TABLE entries ADD COLUMN is_favorite INTEGER DEFAULT 0")
+
             # Add index on timestamp for faster lookups
             cursor.execute(
                 "CREATE INDEX IF NOT EXISTS idx_timestamp ON entries (timestamp)"
@@ -57,7 +61,7 @@ def get_all_entries() -> List[Entry]:
         with sqlite3.connect(db_path) as conn:
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
-            cursor.execute("SELECT id, app, title, text, timestamp, embedding, filename, notes FROM entries ORDER BY timestamp DESC")
+            cursor.execute("SELECT id, app, title, text, timestamp, embedding, filename, notes, is_favorite FROM entries ORDER BY timestamp DESC")
             results = cursor.fetchall()
             for row in results:
                 embedding = np.frombuffer(row["embedding"], dtype=np.float32)
@@ -70,7 +74,8 @@ def get_all_entries() -> List[Entry]:
                         timestamp=row["timestamp"],
                         embedding=embedding,
                         filename=row["filename"],
-                        notes=row["notes"] or ""
+                        notes=row["notes"] or "",
+                        is_favorite=bool(row["is_favorite"])
                     )
                 )
     except sqlite3.Error as e:
@@ -97,7 +102,7 @@ def get_timestamps() -> List[dict]:
 
 
 def insert_entry(
-    text: str, timestamp: int, embedding: np.ndarray, app: str, title: str, filename: str, notes: str = ""
+    text: str, timestamp: int, embedding: np.ndarray, app: str, title: str, filename: str, notes: str = "", is_favorite: bool = False
 ) -> Optional[int]:
     """
     Inserts a new entry into the database.
@@ -108,10 +113,10 @@ def insert_entry(
         with sqlite3.connect(db_path) as conn:
             cursor = conn.cursor()
             cursor.execute(
-                """INSERT INTO entries (text, timestamp, embedding, app, title, filename, notes)
-                   VALUES (?, ?, ?, ?, ?, ?, ?)
+                """INSERT INTO entries (text, timestamp, embedding, app, title, filename, notes, is_favorite)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                    ON CONFLICT(timestamp) DO NOTHING""",
-                (text, timestamp, embedding_bytes, app, title, filename, notes),
+                (text, timestamp, embedding_bytes, app, title, filename, notes, int(is_favorite)),
             )
             conn.commit()
             if cursor.rowcount > 0:
@@ -119,6 +124,20 @@ def insert_entry(
     except sqlite3.Error as e:
         print(f"Database error during insertion: {e}")
     return last_row_id
+
+def toggle_favorite(entry_id: int) -> bool:
+    """
+    Toggles the favorite status for a specific entry.
+    """
+    try:
+        with sqlite3.connect(db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute("UPDATE entries SET is_favorite = CASE WHEN is_favorite = 1 THEN 0 ELSE 1 END WHERE id = ?", (entry_id,))
+            conn.commit()
+            return cursor.rowcount > 0
+    except sqlite3.Error as e:
+        print(f"Database error during favorite toggle: {e}")
+        return False
 
 def update_entry_notes(entry_id: int, notes: str) -> bool:
     """
@@ -226,5 +245,40 @@ def delete_entries_by_range(start_timestamp: int, end_timestamp: int) -> int:
 
     except sqlite3.Error as e:
         print(f"Database error during range deletion: {e}")
+
+    return deleted_count
+
+def delete_entries_by_app(app_name: str) -> int:
+    """
+    Deletes all entries associated with a specific application.
+    Returns the number of deleted records.
+    """
+    import os
+    from timeseek.config import screenshots_path
+
+    deleted_count = 0
+    try:
+        with sqlite3.connect(db_path) as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+
+            cursor.execute("SELECT filename FROM entries WHERE app = ?", (app_name,))
+            files_to_delete = cursor.fetchall()
+
+            for row in files_to_delete:
+                if row["filename"]:
+                    filepath = os.path.join(screenshots_path, row["filename"])
+                    if os.path.exists(filepath):
+                        try:
+                            os.remove(filepath)
+                        except Exception as e:
+                            print(f"Failed to delete file {filepath}: {e}")
+
+            cursor.execute("DELETE FROM entries WHERE app = ?", (app_name,))
+            deleted_count = cursor.rowcount
+            conn.commit()
+
+    except sqlite3.Error as e:
+        print(f"Database error during app deletion: {e}")
 
     return deleted_count
