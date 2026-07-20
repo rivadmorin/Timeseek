@@ -18,6 +18,7 @@ install_requires = [
     "h5py==3.11.0",
     "rapidfuzz==3.9.3",
     "Pillow==10.3.0",
+    "pytest-mock",
 ]
 
 # Define OS-specific dependencies

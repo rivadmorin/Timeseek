@@ -222,19 +222,7 @@
 </div>
 
 <script>
-    const data = [
-        {% for entry in entries %}
-        {
-            "id": {{ entry.id }},
-            "timestamp": {{ entry.timestamp }},
-            "filename": "{{ entry.filename }}",
-            "app": "{{ entry.app | replace('"', '\"') }}",
-            "title": "{{ entry.title | replace('"', '\"') }}",
-            "notes": "{{ entry.notes | replace('\n', '\\n') | replace('"', '\"') }}",
-            "text": "{{ entry.text | replace('\n', '\\n') | replace('"', '\"') }}"
-        }{% if not loop.last %},{% endif %}
-        {% endfor %}
-    ];
+    const data = {{ entries_json | safe }};
 
     const slider = document.getElementById('discreteSlider');
     const sliderValue = document.getElementById('sliderValue');

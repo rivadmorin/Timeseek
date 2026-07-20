@@ -176,7 +176,17 @@
         border: 1px solid var(--md-sys-color-outline-variant);
         outline: none;
     }
+
+    @media (max-width: 900px) {
+        .dashboard-grid {
+            grid-template-columns: 1fr;
+        }
+        .dashboard-section, .management-section {
+            grid-column: span 1 !important;
+        }
+    }
 </style>
+
 
 <div class="dashboard-grid">
     <div class="stat-card">
