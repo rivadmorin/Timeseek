@@ -87,7 +87,9 @@ def timeline():
             "app": e.app,
             "title": e.title,
             "notes": e.notes,
-            "category": get_app_category(e.app or "")
+            "category": get_app_category(e.app or ""),
+            "id": e.id,
+            "text": e.text
         } for e in entries
     ])
     return render_template("timeline.html", entries=entries, entries_json=entries_json)

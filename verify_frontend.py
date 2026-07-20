@@ -12,11 +12,11 @@ async def verify():
     env["PYTHONPATH"] = "."
     process = subprocess.Popen(["python3", "-m", "timeseek.app", "--port", "8083"], env=env)
 
-    time.sleep(10) # Wait for server to start
+    time.sleep(15) # Wait for server to start
 
     async with async_playwright() as p:
         browser = await p.chromium.launch()
-        page = await p.new_page()
+        page = await browser.new_page()
 
         try:
             # Check Dashboard
