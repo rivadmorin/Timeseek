@@ -18,3 +18,24 @@ def test_purge_route(client):
     rv = client.post('/purge')
     assert rv.status_code == 302
     assert '/dashboard' in rv.headers['Location']
+
+def test_index_route(client):
+    rv = client.get('/')
+    assert rv.status_code == 302
+    assert '/dashboard' in rv.headers['Location']
+
+def test_timeline_route(client):
+    rv = client.get('/timeline')
+    assert rv.status_code == 200
+
+def test_search_route(client):
+    rv = client.get('/search')
+    assert rv.status_code == 200
+
+def test_api_heatmap(client):
+    rv = client.get('/api/heatmap')
+    assert rv.status_code == 200
+
+def test_api_wordcloud(client):
+    rv = client.get('/api/wordcloud')
+    assert rv.status_code == 200

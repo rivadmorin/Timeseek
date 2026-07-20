@@ -74,3 +74,12 @@ Format:
 - **Learning:** Mocking `cached_entries` in `app.py` allows for fast verification of UI templates and API endpoints without needing a full database or OCR engine. Using `conftest.py` to centralize Flask app configuration and fixtures ensures consistent test environments.
 - **Action/Rule:** Always include a `conftest.py` for Flask projects to handle shared fixtures and environment setup.
 - **Verify Command:** `PYTHONPATH=. python3 -m pytest tests/test_ui_features.py`
+## 20-07-2026 - Improved Code Coverage for Utils, Routes, and Config
+- **Tags:** #testing #coverage #pytest
+- **Level:** 🟢 INFO
+- **Scope:** [tests/test_utils.py](file:///app/tests/test_utils.py), [tests/test_app_routes.py](file:///app/tests/test_app_routes.py), [tests/test_screenshot.py](file:///app/tests/test_screenshot.py)
+- **Notify Agents:** @TestPilot @Inspector
+- **Symptom:** Core utilities like OS platform checks and Flask routing edge cases lacked sufficient unit test coverage.
+- **Learning:** Mocking standard libraries like `sys.platform`, `os.environ`, and `subprocess` enables testing platform-specific code reliably without needing specialized hardware agents.
+- **Action/Rule:** When adding platform-dependent logic, pair it with parameterized or dynamically patched tests to ensure robustness across different operating systems.
+- **Verify Command:** `pytest tests/ --cov=timeseek`

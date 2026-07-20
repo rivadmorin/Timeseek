@@ -160,49 +160,4 @@ def record_screenshots_thread(on_new_entry: Optional[Callable] = None) -> None:
         except Exception as e:
             print(f"Error in record thread loop: {e}")
             time.sleep(ACTIVE_SLEEP)
-
             continue
-
-        current_screenshots: List[np.ndarray] = take_screenshots()
-
-        if len(last_screenshots) != len(current_screenshots):
-            last_screenshots = current_screenshots
-            time.sleep(ACTIVE_SLEEP)
-            continue
-
-        for i, current_screenshot in enumerate(current_screenshots):
-            last_screenshot = last_screenshots[i]
-
-            if not is_similar(current_screenshot, last_screenshot):
-                text: str = extract_text_from_image(current_screenshot)
-
-                # Keyword Blacklist Check
-                if BLACKLISTED_KEYWORDS:
-                    text_lower = text.lower()
-                    if any(kw in text_lower for kw in BLACKLISTED_KEYWORDS):
-                        print(f"Privacy Filter: Keyword blacklist hit. Skipping snapshot.")
-                        continue
-
-                last_screenshots[i] = current_screenshot
-                image = Image.fromarray(current_screenshot)
-                timestamp = int(time.time())
-                filename = f"{timestamp}_{i}.webp"
-                filepath = os.path.join(screenshots_path, filename)
-
-                image.save(filepath, format="webp", quality=SCREENSHOT_QUALITY)
-
-                if text.strip():
-                    embedding: np.ndarray = get_embedding(text)
-                    active_window_title: str = get_active_window_title() or "Unknown Title"
-                    insert_entry(
-                        text,
-                        timestamp,
-                        embedding,
-                        active_app_name,
-                        active_window_title,
-                        filename,
-                    )
-                    if on_new_entry:
-                        on_new_entry()
-
-        time.sleep(ACTIVE_SLEEP)
