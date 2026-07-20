@@ -147,7 +147,10 @@ def delete(entry_id):
         # Delete image file
         image_path = os.path.join(screenshots_path, entry.filename)
         if os.path.exists(image_path):
-            os.remove(image_path)
+            try:
+                os.remove(image_path)
+            except Exception as e:
+                print(f"Error deleting file {image_path}: {e}")
 
         # Delete DB record
         if delete_entry(entry_id):
@@ -173,11 +176,17 @@ def bulk_delete():
 def purge():
     """Deletes all screenshots and the database."""
     if os.path.exists(screenshots_path):
-        shutil.rmtree(screenshots_path)
+        try:
+            shutil.rmtree(screenshots_path)
+        except Exception as e:
+            print(f"Error removing screenshots directory: {e}")
     os.makedirs(screenshots_path, exist_ok=True)
 
     if os.path.exists(db_path):
-        os.remove(db_path)
+        try:
+            os.remove(db_path)
+        except Exception as e:
+            print(f"Error removing database file: {e}")
 
     create_db()
     refresh_cache()

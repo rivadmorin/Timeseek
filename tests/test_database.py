@@ -156,5 +156,151 @@ class TestDatabase(unittest.TestCase):
         self.assertEqual(len(entries), 1)
         self.assertEqual(entries[0].app, "Another App")
 
+
+
+    def test_prune_old_data(self):
+        # Insert one old and one new
+        ts_now = int(time.time())
+        ts_old = ts_now - (30 * 86400) - 100
+        embedding = np.array([0.1, 0.2, 0.3], dtype=np.float32)
+
+        insert_entry("Old text", ts_old, embedding, "App1", "Title1", "old.webp")
+        insert_entry("New text", ts_now, embedding, "App2", "Title2", "new.webp")
+
+        # Prune older than 30 days
+        deleted = prune_old_data(30)
+        self.assertEqual(deleted, 1)
+
+        entries = get_all_entries()
+        self.assertEqual(len(entries), 1)
+        self.assertEqual(entries[0].text, "New text")
+
+    def test_delete_entries_by_range(self):
+        ts_now = int(time.time())
+        ts_mid = ts_now - 1000
+        ts_old = ts_now - 2000
+        embedding = np.array([0.1, 0.2, 0.3], dtype=np.float32)
+
+        insert_entry("Old text", ts_old, embedding, "App1", "Title1", "old.webp")
+        insert_entry("Mid text", ts_mid, embedding, "App2", "Title2", "mid.webp")
+        insert_entry("New text", ts_now, embedding, "App3", "Title3", "new.webp")
+
+        # Delete range [ts_mid, ts_now]
+        deleted = delete_entries_by_range(ts_mid, ts_now)
+        self.assertEqual(deleted, 2)
+
+        entries = get_all_entries()
+        self.assertEqual(len(entries), 1)
+    def test_prune_old_data(self):
+        # Insert one old and one new
+        ts_now = int(time.time())
+        ts_old = ts_now - (30 * 86400) - 100
+        embedding = np.array([0.1, 0.2, 0.3], dtype=np.float32)
+
+        insert_entry("Old text", ts_old, embedding, "App1", "Title1", "old.webp")
+        insert_entry("New text", ts_now, embedding, "App2", "Title2", "new.webp")
+
+        # Prune older than 30 days
+        deleted = prune_old_data(30)
+        self.assertEqual(deleted, 1)
+
+        entries = get_all_entries()
+        self.assertEqual(len(entries), 1)
+        self.assertEqual(entries[0].text, "New text")
+
+    def test_delete_entries_by_range(self):
+        ts_now = int(time.time())
+        ts_mid = ts_now - 1000
+        ts_old = ts_now - 2000
+        embedding = np.array([0.1, 0.2, 0.3], dtype=np.float32)
+
+        insert_entry("Old text", ts_old, embedding, "App1", "Title1", "old.webp")
+        insert_entry("Mid text", ts_mid, embedding, "App2", "Title2", "mid.webp")
+        insert_entry("New text", ts_now, embedding, "App3", "Title3", "new.webp")
+
+        # Delete range [ts_mid, ts_now]
+        deleted = delete_entries_by_range(ts_mid, ts_now)
+        self.assertEqual(deleted, 2)
+
+        entries = get_all_entries()
+        self.assertEqual(len(entries), 1)
+        self.assertEqual(entries[0].text, "Old text")
+
+
+
+    def test_prune_old_data(self):
+        # Insert one old and one new
+        from timeseek.database import prune_old_data
+        ts_now = int(time.time())
+        ts_old = ts_now - (30 * 86400) - 100
+        embedding = np.array([0.1, 0.2, 0.3], dtype=np.float32)
+
+        insert_entry("Old text", ts_old, embedding, "App1", "Title1", "old.webp")
+        insert_entry("New text", ts_now, embedding, "App2", "Title2", "new.webp")
+
+        # Prune older than 30 days
+        deleted = prune_old_data(30)
+        self.assertEqual(deleted, 1)
+
+        entries = get_all_entries()
+        self.assertEqual(len(entries), 1)
+        self.assertEqual(entries[0].text, "New text")
+
+    def test_delete_entries_by_range(self):
+        from timeseek.database import delete_entries_by_range
+        ts_now = int(time.time())
+        ts_mid = ts_now - 1000
+        ts_old = ts_now - 2000
+        embedding = np.array([0.1, 0.2, 0.3], dtype=np.float32)
+
+        insert_entry("Old text", ts_old, embedding, "App1", "Title1", "old.webp")
+        insert_entry("Mid text", ts_mid, embedding, "App2", "Title2", "mid.webp")
+        insert_entry("New text", ts_now, embedding, "App3", "Title3", "new.webp")
+
+        # Delete range [ts_mid, ts_now]
+        deleted = delete_entries_by_range(ts_mid, ts_now)
+        self.assertEqual(deleted, 2)
+
+        entries = get_all_entries()
+        self.assertEqual(len(entries), 1)
+        self.assertEqual(entries[0].text, "Old text")
+
+
+    def test_prune_old_data(self):
+        from timeseek.database import prune_old_data
+        ts_now = int(time.time())
+        ts_old = ts_now - (30 * 86400) - 100
+        embedding = np.array([0.1, 0.2, 0.3], dtype=np.float32)
+
+        insert_entry("Old text", ts_old, embedding, "App1", "Title1", "old.webp")
+        insert_entry("New text", ts_now, embedding, "App2", "Title2", "new.webp")
+
+        # Prune older than 30 days
+        deleted = prune_old_data(30)
+        self.assertEqual(deleted, 1)
+
+        entries = get_all_entries()
+        self.assertEqual(len(entries), 1)
+        self.assertEqual(entries[0].text, "New text")
+
+    def test_delete_entries_by_range(self):
+        from timeseek.database import delete_entries_by_range
+        ts_now = int(time.time())
+        ts_mid = ts_now - 1000
+        ts_old = ts_now - 2000
+        embedding = np.array([0.1, 0.2, 0.3], dtype=np.float32)
+
+        insert_entry("Old text", ts_old, embedding, "App1", "Title1", "old.webp")
+        insert_entry("Mid text", ts_mid, embedding, "App2", "Title2", "mid.webp")
+        insert_entry("New text", ts_now, embedding, "App3", "Title3", "new.webp")
+
+        # Delete range [ts_mid, ts_now]
+        deleted = delete_entries_by_range(ts_mid, ts_now)
+        self.assertEqual(deleted, 2)
+
+        entries = get_all_entries()
+        self.assertEqual(len(entries), 1)
+        self.assertEqual(entries[0].text, "Old text")
+
 if __name__ == '__main__':
     unittest.main()
