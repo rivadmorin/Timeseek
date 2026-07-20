@@ -49,6 +49,18 @@ Timeseek operates on a sophisticated pipeline designed for efficiency and privac
 
 ## Get Started
 
+### Installation
+
+To install Timeseek, run:
+```bash
+pip install -e .
+```
+
+To uninstall Timeseek, run:
+```bash
+pip uninstall -y Timeseek
+```
+
 ### To Run
 ```bash
 python3 -m timeseek.app --blacklist "Bitwarden,1Password" --retention-days 14
