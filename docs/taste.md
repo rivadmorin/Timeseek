@@ -105,3 +105,50 @@ Format:
 - **Learning:** Hardcoded M3 tokens in templates should be moved to `m3-tokens.css` for consistency across themes. Using `opacity` on primary containers for heatmap levels creates a more cohesive visual rhythm than hardcoded hex values. Smooth transitions on the theme toggle icon (`transform`) improve perceived quality.
 - **Action/Rule:** Always link `m3-tokens.css` in the layout and use CSS variables for semantic coloring.
 - **Verify Command:** Manual inspection of `layout.html` and `custom.css`.
+
+## 05-10-2026 - Material Design 3 Frontend Optimization & Offline Token Alignment
+- **Tags:** #taste #material #frontend #m3
+- **Level:** 🟢 INFO
+- **Scope:** [timeseek/templates/layout.html](file:///app/timeseek/templates/layout.html), [timeseek/templates/dashboard.html](file:///app/timeseek/templates/dashboard.html), [timeseek/templates/search.html](file:///app/timeseek/templates/search.html), [timeseek/templates/export_pdf.html](file:///app/timeseek/templates/export_pdf.html)
+- **Notify Agents:** @Taste @Material @Builder
+- **Symptom:** CDN references for fonts prevented full offline capability; hardcoded hex colors in dashboard heatmap broke light/dark mode consistency; missing M3 empty states in search page.
+- **Root Cause:** Incomplete token substitution and remote font links in layout.
+- **Learning:** Utilizing local  and  guarantees 100% offline rendering. Mapping UI colors to CSS tokens () ensures seamless theme adaptability.
+- **Action/Rule:** Always link local font stylesheets and use semantic M3 token variables for UI components.
+- **Verify Command:** ============================= test session starts ==============================
+platform linux -- Python 3.12.13, pytest-9.1.1, pluggy-1.6.0
+rootdir: /app
+plugins: mock-3.16.0
+collected 65 items
+
+tests/test_app_routes.py ...                                             [  4%]
+tests/test_config.py .....                                               [ 12%]
+tests/test_dashboard.py .......                                          [ 23%]
+tests/test_database.py ..........                                        [ 38%]
+tests/test_deletion.py ..                                                [ 41%]
+tests/test_nlp.py ......                                                 [ 50%]
+tests/test_ocr.py ....                                                   [ 56%]
+tests/test_performance.py ..                                             [ 60%]
+tests/test_screenshot.py ..........                                      [ 75%]
+tests/test_search.py ...                                                 [ 80%]
+tests/test_ui_features.py .....                                          [ 87%]
+tests/test_utils.py ........                                             [100%]
+
+=============================== warnings summary ===============================
+../home/jules/.pyenv/versions/3.12.13/lib/python3.12/site-packages/defusedxml/__init__.py:30
+  /home/jules/.pyenv/versions/3.12.13/lib/python3.12/site-packages/defusedxml/__init__.py:30: DeprecationWarning: defusedxml.cElementTree is deprecated, import from defusedxml.ElementTree instead.
+    from . import cElementTree
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 65 passed, 1 warning in 0.86s =========================
+
+## 05-10-2026 - Material Design 3 Frontend Optimization & Offline Token Alignment
+- **Tags:** #taste #material #frontend #m3
+- **Level:** 🟢 INFO
+- **Scope:** [timeseek/templates/layout.html](file:///app/timeseek/templates/layout.html), [timeseek/templates/dashboard.html](file:///app/timeseek/templates/dashboard.html), [timeseek/templates/search.html](file:///app/timeseek/templates/search.html), [timeseek/templates/export_pdf.html](file:///app/timeseek/templates/export_pdf.html)
+- **Notify Agents:** @Taste @Material @Builder
+- **Symptom:** CDN references for fonts prevented full offline capability; hardcoded hex colors in dashboard heatmap broke light/dark mode consistency; missing M3 empty states in search page.
+- **Root Cause:** Incomplete token substitution and remote font links in layout.
+- **Learning:** Utilizing local inter.css and material-symbols.css guarantees 100% offline rendering. Mapping UI colors to CSS tokens (`var(--md-sys-color-primary-container)`) ensures seamless theme adaptability.
+- **Action/Rule:** Always link local font stylesheets and use semantic M3 token variables for UI components.
+- **Verify Command:** `PYTHONPATH=. pytest tests/`
