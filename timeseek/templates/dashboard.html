@@ -95,10 +95,10 @@
         outline: 1px solid var(--md-sys-color-primary);
     }
 
-    .level-1 { background-color: #4F378B; opacity: 0.3; }
-    .level-2 { background-color: #4F378B; opacity: 0.5; }
-    .level-3 { background-color: #4F378B; opacity: 0.8; }
-    .level-4 { background-color: #D0BCFF; }
+    .level-1 { background-color: var(--md-sys-color-primary-container); opacity: 0.3; }
+    .level-2 { background-color: var(--md-sys-color-primary-container); opacity: 0.6; }
+    .level-3 { background-color: var(--md-sys-color-primary-container); opacity: 0.9; }
+    .level-4 { background-color: var(--md-sys-color-primary); }
 
     /* Word Cloud styling */
     .word-cloud {
@@ -225,6 +225,8 @@
                     <div class="progress-bar-fill" style="width: {{ (count / total_snapshots * 100) | round }}%"></div>
                 </div>
             </div>
+            {% else %}
+            <div style="color: var(--md-sys-color-on-surface-variant); font-size: 14px; text-align: center; padding: 24px 0;">No activity recorded yet</div>
             {% endfor %}
         </div>
     </div>

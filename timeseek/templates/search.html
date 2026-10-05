@@ -234,6 +234,13 @@
     {% endif %}
 </div>
 
+{% if entries|length == 0 %}
+<div class="empty-state" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 300px; text-align: center; color: var(--md-sys-color-on-surface-variant); padding: 48px 24px; background-color: var(--md-sys-color-surface-container-low); border-radius: var(--md-sys-shape-corner-extra-large); border: 1px solid var(--md-sys-color-outline-variant);">
+    <span class="material-symbols-rounded" style="font-size: 64px; color: var(--md-sys-color-outline); margin-bottom: 16px;">search_off</span>
+    <h3 style="font-size: 20px; font-weight: 500; margin: 0 0 8px 0; color: var(--md-sys-color-on-surface);">No snapshots found</h3>
+    <p style="font-size: 14px; margin: 0; max-width: 400px; color: var(--md-sys-color-on-surface-variant);">Try searching with different keywords or clear the application filter to see more recall moments.</p>
+</div>
+{% else %}
 <div class="grid" id="resultsGrid">
     {% for entry in entries %}
     <div class="card" onclick="openModal('modal-{{ entry.id }}')">
@@ -281,6 +288,7 @@
     </dialog>
     {% endfor %}
 </div>
+{% endif %}
 
 <script>
     function openModal(id) {
