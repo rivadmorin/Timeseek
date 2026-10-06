@@ -10,106 +10,92 @@
 
 Join our [Discord](https://discord.gg/RzvCYRgUkx) and/or [Telegram](https://t.me/+5DULWTesqUYwYjY0) community to stay informed of updates!
 
-# Take Control of Your Digital Memory (M3 Overhauled! 🕴️)
+# Take Control of Your Digital Memory (M3 Overhauled! 🕴️ - Full Rust 🚀)
 
-Timeseek is a fully open-source, privacy-first alternative to proprietary solutions like Microsoft's Windows Recall or Limitless' Rewind.ai. It records your screen, extracts text locally via OCR, computes semantic embeddings, and lets you search or scrub through your digital history—100% offline.
+Timeseek is a fully open-source, privacy-first alternative to proprietary solutions like Microsoft's Windows Recall or Limitless' Rewind.ai. Written 100% in Rust, it records your screen, extracts text locally, computes semantic embeddings, and lets you search or scrub through your digital history—100% offline with zero Python runtime overhead.
 
 ---
 
 ## ✨ Features
 
+- **🚀 100% Full Rust Engine**: High performance, memory efficiency, native async web server (`Axum`), and multi-threaded screen recording.
 - **🕒 Time Travel (M3 Timeline)**: Scrub through past digital activities with an interactive Material Design 3 timeline player.
-- **🔍 Semantic & Vector Search**: Perform fast, local similarity search across past screen content powered by `sentence-transformers` embeddings.
+- **🔍 Semantic & Vector Search**: Perform fast, local similarity search across past screen content powered by vector embeddings and cosine similarity.
 - **🚫 App & Keyword Blacklist**: Protect sensitive information by automatically excluding specified applications (e.g., password managers) or snapshots containing specific sensitive keywords.
 - **🏷️ Snapshot Annotations**: Add custom notes and personal context directly to any captured snapshot.
 - **🧹 Auto-Pruning Engine**: Configurable data retention policies to automatically delete snapshots and database entries older than a set threshold.
-- **📊 Activity Analytics**: Track usage patterns with interactive hourly activity graphs, heatmaps, and OCR word clouds on the Dashboard.
-- **📄 Single-Snapshot PDF Export**: Easily export and format individual recorded moments for archiving or sharing.
-- **🔒 Privacy First & Offline Capable**: Zero cloud dependencies. No CDN calls or external API dependencies for core functionality.
+- **📊 Activity Analytics**: Track usage patterns with interactive hourly activity graphs and statistics on the Dashboard.
+- **🔒 Privacy First & Offline Capable**: Zero cloud dependencies. No external API calls.
 
 ---
 
 ## 🛠️ Technical Architecture
 
-Timeseek operates on a high-performance local pipeline:
+Timeseek Rust operates on a native high-performance local pipeline:
 
-1. **Screen Capture & Deduplication (MSSIM)**: Screenshots are captured periodically. Structural similarity (MSSIM) is evaluated against the previous frame—if no meaningful visual change is detected, processing is skipped.
-2. **Privacy Filter**: Evaluates active window metadata against user-defined application and keyword blacklists before capturing or saving images.
-3. **Local OCR (doctr)**: Extracts textual content from captured images using a light, local `doctr` OCR model.
-4. **NLP Embeddings**: Text content is transformed into 384-dimensional dense vectors using `all-MiniLM-L6-v2`.
-5. **Storage & Caching (SQLite)**: Snapshot metadata, notes, and vector embeddings are indexed in a local SQLite database and cached in memory for instant query responses.
-6. **Auto-Maintenance**: An automated pruning process runs on startup to clean up physical images and database rows past the configured retention limit.
+1. **Screen Capture & Deduplication (SSIM)**: Screenshots are captured periodically via native screen capture tools. Structural similarity (SSIM) is evaluated against the previous frame in Rust—if no visual change is detected, processing is skipped.
+2. **Privacy Filter**: Evaluates application metadata against user-defined app and keyword blacklists before capturing or saving images.
+3. **Storage & Caching (SQLite)**: Snapshot metadata, notes, and vector embeddings are indexed in a local SQLite database (`rusqlite`) and cached in memory for instant query responses.
+4. **Auto-Maintenance**: Automated pruning on startup cleans up physical images and database rows past the configured retention limit.
 
 ---
 
 ## 💻 CLI Options & Configuration
 
-You can customize Timeseek at launch using command-line arguments:
+Launch Timeseek Rust with command-line arguments:
 
 | Flag | Type | Default | Description |
 |---|---|---|---|
-| `--port` | `int` | `8082` | Web server port. |
-| `--blacklist` | `str` | `Bitwarden,1Password,...` | Comma-separated list of application names to ignore. |
-| `--keyword-blacklist` | `str` | `""` | Comma-separated list of text keywords to ignore snapshots containing them. |
-| `--retention-days` | `int` | `30` | Data retention period in days before auto-pruning. |
-| `--image-quality` | `int` | `80` | Saved JPEG screenshot quality (1-100). |
-| `--ocr-lang` | `str` | `"en"` | Language code for local OCR model. |
-| `--primary-monitor-only` | `flag` | `False` | Limit screen recording to primary monitor only. |
+| `--port` / `-p` | `u16` | `8082` | Web server port. |
+| `--db-path` / `-d` | `str` | `"timeseek.db"` | Path to SQLite database file. |
+| `--screenshots-path` / `-s` | `str` | `"images"` | Folder path to store captured screenshots. |
+| `--blacklist` / `-b` | `str` | `""` | Comma-separated list of application names to ignore. |
+| `--keyword-blacklist` / `-k` | `str` | `""` | Comma-separated list of text keywords to ignore snapshots containing them. |
+| `--retention-days` / `-r` | `u64` | `30` | Data retention period in days before auto-pruning. |
+| `--primary-monitor-only` | `flag` | `false` | Limit screen recording to primary monitor only. |
 
 ---
 
 ## 📁 Project Structure
 
 ```
-timeseek/
-├── app.py           # Flask web application & API routing
-├── config.py        # Centralized configuration & argument parsing
-├── database.py      # SQLite schema, migrations, CRUD, and auto-pruning
-├── nlp.py           # Vector embeddings & cosine similarity search engine
-├── ocr.py           # Local OCR text extraction engine
-├── screenshot.py    # Background screen recording loop & MSSIM deduplication
-├── state.py         # Thread-safe global application state
-├── utils.py         # Formatting and app categorization helpers
-├── static/          # CSS, JS, and M3 design assets
-└── templates/       # Jinja2 HTML templates (Dashboard, Timeline, Search, etc.)
+.
+├── Cargo.toml         # Cargo binary package definition & Rust dependencies
+├── src/
+│   ├── main.rs        # Main CLI entry point & server initialization
+│   ├── lib.rs         # Module exports
+│   ├── db.rs          # SQLite database schema, CRUD, & auto-pruning
+│   ├── state.rs       # Thread-safe global application state
+│   ├── cache.rs       # Thread-safe in-memory snapshot cache
+│   ├── recording.rs   # Background Tokio screen recording loop & deduplication
+│   ├── image_proc.rs  # SSIM structural image comparison algorithm
+│   ├── ml.rs          # Vector embedding calculation & SIMD cosine similarity
+│   └── web.rs         # Axum web server, REST API, & template handlers
+├── tests/
+│   └── rust_tests.rs  # Integration and unit tests
+└── timeseek/
+    ├── static/        # Material Design 3 CSS, JS, and UI assets
+    └── templates/     # HTML templates parsed via minijinja
 ```
 
 ---
 
 ## 🚀 Quick Start
 
-### Installation
+### Build & Run with Cargo
 
-Clone the repository and install in editable mode:
+Compile and run Timeseek in release mode:
 ```bash
-git clone https://github.com/rivadmorin/Timeseek.git
-cd Timeseek
-pip install -e .
+cargo run --release -- --port 8082 --retention-days 14
 ```
 
-To uninstall:
+Or run tests:
 ```bash
-pip uninstall -y Timeseek
-```
-
-### Running Timeseek
-
-Launch Timeseek with custom configuration flags:
-```bash
-python3 -m timeseek.app --blacklist "Bitwarden,1Password" --keyword-blacklist "secret,confidential" --retention-days 14
+cargo test
 ```
 
 Access the web interface in your browser at:
 **[http://localhost:8082](http://localhost:8082)**
-
----
-
-## 🤖 Agentic Development System
-
-This repository utilizes an **Agentic Development Workflow** powered by specialized agents (Scribe, Inspector, Builder, Bug Hunter, Taste, etc.) coordinated by an Orchestrator.
-
-- **Knowledge Base**: Detailed logs and architecture learnings are located in `docs/`.
-- **Index**: Map of agent memories available at [`docs/index.md`](docs/index.md).
 
 ---
 
