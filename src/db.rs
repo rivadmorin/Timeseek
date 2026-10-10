@@ -277,4 +277,76 @@ impl Database {
 
         Ok(deleted_count)
     }
+
+    pub fn purge_all(&self, screenshots_dir: &str) -> Result<usize> {
+        let conn = self.get_conn()?;
+        let mut stmt = conn.prepare("SELECT filename FROM entries")?;
+        let filenames: Vec<String> = stmt
+            .query_map([], |row| row.get::<_, Option<String>>(0))?
+            .filter_map(|r| r.ok().flatten())
+            .collect();
+
+        for filename in filenames {
+            if !filename.is_empty() {
+                let file_path = Path::new(screenshots_dir).join(&filename);
+                if file_path.exists() {
+                    let _ = std::fs::remove_file(file_path);
+                }
+            }
+        }
+
+        let deleted_count = conn.execute("DELETE FROM entries", [])?;
+        Ok(deleted_count)
+    }
+
+    pub fn get_heatmap_data(&self) -> Result<std::collections::HashMap<String, usize>> {
+        let entries = self.get_all_entries()?;
+        let mut heatmap = std::collections::HashMap::new();
+
+        for entry in entries {
+            if entry.timestamp > 0 {
+                if let Some(datetime) = chrono::DateTime::from_timestamp(entry.timestamp, 0) {
+                    let date_str = datetime.format("%Y-%m-%d").to_string();
+                    *heatmap.entry(date_str).or_insert(0) += 1;
+                }
+            }
+        }
+
+        Ok(heatmap)
+    }
+
+    pub fn get_wordcloud_data(&self) -> Result<Vec<(String, usize)>> {
+        let entries = self.get_all_entries()?;
+        let mut counts = std::collections::HashMap::new();
+
+        let stop_words: std::collections::HashSet<&str> = [
+            "the", "be", "to", "of", "and", "a", "in", "that", "have", "i",
+            "it", "for", "not", "on", "with", "he", "as", "you", "do", "at",
+            "this", "but", "his", "by", "from", "they", "we", "say", "her", "she",
+            "or", "an", "will", "my", "one", "all", "would", "there", "their", "what",
+            "so", "up", "out", "if", "about", "who", "get", "which", "go", "me",
+            "is", "are", "was", "were", "been", "has", "had", "http", "https", "com",
+        ].iter().cloned().collect();
+
+        for entry in entries {
+            let combined_text = format!("{} {} {}", entry.title, entry.text, entry.notes);
+            for word in combined_text.split_whitespace() {
+                let cleaned: String = word
+                    .chars()
+                    .filter(|c| c.is_alphanumeric())
+                    .collect::<String>()
+                    .to_lowercase();
+
+                if cleaned.len() > 2 && !stop_words.contains(cleaned.as_str()) {
+                    *counts.entry(cleaned).or_insert(0) += 1;
+                }
+            }
+        }
+
+        let mut sorted_counts: Vec<(String, usize)> = counts.into_iter().collect();
+        sorted_counts.sort_by(|a, b| b.1.cmp(&a.1));
+        sorted_counts.truncate(50);
+
+        Ok(sorted_counts)
+    }
 }
