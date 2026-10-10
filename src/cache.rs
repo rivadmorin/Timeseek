@@ -66,6 +66,12 @@ impl EntryCache {
             lock.retain(|e| e.app != app_name);
         }
     }
+
+    pub fn clear_all(&self) {
+        if let Ok(mut lock) = self.entries.write() {
+            lock.clear();
+        }
+    }
 }
 
 impl Default for EntryCache {

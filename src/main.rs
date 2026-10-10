@@ -71,8 +71,46 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         cache.set(entries);
     }
 
-    // Minijinja setup
+    // Minijinja setup & custom filters
     let mut jinja_env = Environment::new();
+    jinja_env.add_filter("timestamp_to_human_readable", |ts: i64| -> String {
+        if ts <= 0 {
+            return "N/A".to_string();
+        }
+        if let Some(datetime) = chrono::DateTime::from_timestamp(ts, 0) {
+            datetime.format("%Y-%m-%d %H:%M:%S").to_string()
+        } else {
+            "N/A".to_string()
+        }
+    });
+
+    jinja_env.add_filter("human_readable_time", |seconds: u64| -> String {
+        if seconds < 60 {
+            format!("{}s", seconds)
+        } else if seconds < 3600 {
+            format!("{}m", seconds / 60)
+        } else {
+            let hours = seconds / 3600;
+            let mins = (seconds % 3600) / 60;
+            if mins > 0 {
+                format!("{}h {}m", hours, mins)
+            } else {
+                format!("{}h", hours)
+            }
+        }
+    });
+
+    jinja_env.add_filter("get_app_category", |app_name: String| -> String {
+        let app_lower = app_name.to_lowercase();
+        if app_lower.contains("code") || app_lower.contains("terminal") || app_lower.contains("cargo") {
+            "Development".to_string()
+        } else if app_lower.contains("firefox") || app_lower.contains("chrome") || app_lower.contains("browser") {
+            "Browsing".to_string()
+        } else {
+            "General".to_string()
+        }
+    });
+
     let templates_dir = Path::new("timeseek/templates");
     if templates_dir.exists() {
         for entry in std::fs::read_dir(templates_dir)? {

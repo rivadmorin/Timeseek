@@ -1,4 +1,5 @@
-use tempfile::NamedTempFile;
+use tempfile::{tempdir, NamedTempFile};
+use timeseek::cache::EntryCache;
 use timeseek::db::{Database, NewEntry};
 use timeseek::ml::cosine_similarity;
 use timeseek::state::AppState;
@@ -14,7 +15,7 @@ fn test_state_pause_toggle() {
 }
 
 #[test]
-fn test_db_crud() {
+fn test_db_crud_and_aggregations() {
     let tmp_file = NamedTempFile::new().unwrap();
     let db_path = tmp_file.path().to_str().unwrap();
 
@@ -22,24 +23,23 @@ fn test_db_crud() {
 
     let embedding = vec![0.1f32; 384];
     let new_entry = NewEntry {
-        text: "Test screenshot content",
-        timestamp: 1000000,
+        text: "Important work session notes and analysis",
+        timestamp: 1700000000,
         embedding: &embedding,
-        app: "Firefox",
-        title: "Mozilla Firefox",
-        filename: "1000000.jpg",
+        app: "VSCode",
+        title: "rust_tests.rs - Timeseek",
+        filename: "1700000000.jpg",
         notes: "Initial Note",
         is_favorite: false,
     };
 
     let inserted_id = db.insert_entry(new_entry).unwrap();
-
     assert!(inserted_id.is_some());
     let id = inserted_id.unwrap();
 
     let entries = db.get_all_entries().unwrap();
     assert_eq!(entries.len(), 1);
-    assert_eq!(entries[0].app, "Firefox");
+    assert_eq!(entries[0].app, "VSCode");
     assert_eq!(entries[0].notes, "Initial Note");
 
     let toggled = db.toggle_favorite(id).unwrap();
@@ -54,11 +54,50 @@ fn test_db_crud() {
     let entries = db.get_all_entries().unwrap();
     assert_eq!(entries[0].notes, "Updated Note");
 
-    let deleted = db.delete_entry(id).unwrap();
-    assert!(deleted);
+    // Heatmap test
+    let heatmap = db.get_heatmap_data().unwrap();
+    assert!(!heatmap.is_empty());
+
+    // Wordcloud test
+    let wordcloud = db.get_wordcloud_data().unwrap();
+    assert!(!wordcloud.is_empty());
+
+    // Purge test
+    let dir = tempdir().unwrap();
+    let screenshots_dir = dir.path().to_str().unwrap();
+
+    let purged = db.purge_all(screenshots_dir).unwrap();
+    assert_eq!(purged, 1);
 
     let entries = db.get_all_entries().unwrap();
     assert_eq!(entries.len(), 0);
+}
+
+#[test]
+fn test_cache_operations() {
+    let cache = EntryCache::new();
+    assert_eq!(cache.get_all().len(), 0);
+
+    let entry = timeseek::db::Entry {
+        id: 1,
+        app: "Firefox".to_string(),
+        title: "Mozilla Firefox".to_string(),
+        text: "Search page".to_string(),
+        timestamp: 100,
+        embedding: vec![],
+        filename: "100.jpg".to_string(),
+        notes: "".to_string(),
+        is_favorite: false,
+    };
+
+    cache.add(entry);
+    assert_eq!(cache.get_all().len(), 1);
+
+    cache.update_notes(1, "Cached Note");
+    assert_eq!(cache.get_all()[0].notes, "Cached Note");
+
+    cache.clear_all();
+    assert_eq!(cache.get_all().len(), 0);
 }
 
 #[test]
