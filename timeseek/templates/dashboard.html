@@ -8,6 +8,27 @@
         margin-top: 8px;
     }
 
+    .status-banner {
+        grid-column: span 2;
+        padding: 16px 24px;
+        border-radius: var(--md-sys-shape-corner-extra-large);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border: 1px solid var(--md-sys-color-outline-variant);
+        transition: all 0.2s ease;
+    }
+
+    .status-banner.active {
+        background-color: var(--md-sys-color-primary-container);
+        color: var(--md-sys-color-on-primary-container);
+    }
+
+    .status-banner.paused {
+        background-color: var(--md-sys-color-error-container);
+        color: var(--md-sys-color-on-error-container);
+    }
+
     .stat-card {
         background-color: var(--md-sys-color-surface-container);
         border-radius: var(--md-sys-shape-corner-large);
@@ -181,14 +202,33 @@
         .dashboard-grid {
             grid-template-columns: 1fr;
         }
-        .dashboard-section, .management-section {
+        .dashboard-section, .management-section, .status-banner {
             grid-column: span 1 !important;
         }
     }
 </style>
 
-
 <div class="dashboard-grid">
+    <!-- Recording Status Banner -->
+    <div class="status-banner {% if is_paused %}paused{% else %}active{% endif %}" id="statusBanner">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <span class="material-symbols-rounded" style="font-size: 28px;">
+                {% if is_paused %}pause_circle{% else %}videocam{% endif %}
+            </span>
+            <div>
+                <div style="font-weight: 600; font-size: 16px;">
+                    Screen Recording: <span id="bannerText">{% if is_paused %}Paused{% else %}Active (Capturing & Indexing){% endif %}</span>
+                </div>
+                <div style="font-size: 13px; opacity: 0.85;">
+                    {% if is_paused %}Screen snapshot background process is currently paused.{% else %}Background process automatically indexes screenshots every few seconds.{% endif %}
+                </div>
+            </div>
+        </div>
+        <button id="toggleBtn" class="btn btn-secondary" onclick="toggleDashboardPause()">
+            {% if is_paused %}Resume{% else %}Pause{% endif %}
+        </button>
+    </div>
+
     <div class="stat-card">
         <span class="stat-label">Total Time Tracked</span>
         <span class="stat-value">{{ total_time_human }}</span>
@@ -276,43 +316,86 @@
 </div>
 
 <script>
+    let isPaused = {{ 'true' if is_paused else 'false' }};
+
+    async function toggleDashboardPause() {
+        const targetState = !isPaused;
+        try {
+            const response = await fetch('/api/settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ recording_paused: targetState })
+            });
+
+            if (response.ok) {
+                isPaused = targetState;
+                const banner = document.getElementById('statusBanner');
+                const text = document.getElementById('bannerText');
+                const btn = document.getElementById('toggleBtn');
+                const icon = banner.querySelector('.material-symbols-rounded');
+
+                if (isPaused) {
+                    banner.className = 'status-banner paused';
+                    text.textContent = 'Paused';
+                    btn.textContent = 'Resume';
+                    icon.textContent = 'pause_circle';
+                } else {
+                    banner.className = 'status-banner active';
+                    text.textContent = 'Active (Capturing & Indexing)';
+                    btn.textContent = 'Pause';
+                    icon.textContent = 'videocam';
+                }
+            }
+        } catch (err) {
+            console.error('Error toggling recording status:', err);
+        }
+    }
+
     async function loadInsights() {
         // Load Heatmap
-        const heatmapRes = await fetch('/api/heatmap');
-        const heatmapData = await heatmapRes.json();
-        const heatmapContainer = document.getElementById('heatmap');
+        try {
+            const heatmapRes = await fetch('/api/heatmap');
+            const heatmapData = await heatmapRes.json();
+            const heatmapContainer = document.getElementById('heatmap');
 
-        const now = new Date();
-        for (let i = 89; i >= 0; i--) {
-            const d = new Date();
-            d.setDate(now.getDate() - i);
-            const dateStr = d.toISOString().split('T')[0];
-            const count = heatmapData[dateStr] || 0;
+            const now = new Date();
+            for (let i = 89; i >= 0; i--) {
+                const d = new Date();
+                d.setDate(now.getDate() - i);
+                const dateStr = d.toISOString().split('T')[0];
+                const count = heatmapData[dateStr] || 0;
 
-            const cell = document.createElement('div');
-            cell.className = 'heatmap-cell';
-            if (count > 50) cell.classList.add('level-4');
-            else if (count > 20) cell.classList.add('level-3');
-            else if (count > 5) cell.classList.add('level-2');
-            else if (count > 0) cell.classList.add('level-1');
+                const cell = document.createElement('div');
+                cell.className = 'heatmap-cell';
+                if (count > 50) cell.classList.add('level-4');
+                else if (count > 20) cell.classList.add('level-3');
+                else if (count > 5) cell.classList.add('level-2');
+                else if (count > 0) cell.classList.add('level-1');
 
-            cell.title = `${dateStr}: ${count} snapshots`;
-            heatmapContainer.appendChild(cell);
+                cell.title = `${dateStr}: ${count} snapshots`;
+                heatmapContainer.appendChild(cell);
+            }
+        } catch (e) {
+            console.error('Heatmap load error:', e);
         }
 
         // Load Word Cloud
-        const cloudRes = await fetch('/api/wordcloud');
-        const cloudData = await cloudRes.json();
-        const cloudContainer = document.getElementById('wordcloud');
+        try {
+            const cloudRes = await fetch('/api/wordcloud');
+            const cloudData = await cloudRes.json();
+            const cloudContainer = document.getElementById('wordcloud');
 
-        cloudData.forEach(item => {
-            const span = document.createElement('span');
-            span.textContent = item.text;
-            span.style.fontSize = `${Math.min(10 + item.size, 32)}px`;
-            span.style.opacity = Math.max(0.4, item.size / 20);
-            span.onclick = () => window.location.href = `/search?q=${item.text}`;
-            cloudContainer.appendChild(span);
-        });
+            cloudData.forEach(item => {
+                const span = document.createElement('span');
+                span.textContent = item.text;
+                span.style.fontSize = `${Math.min(10 + item.size, 32)}px`;
+                span.style.opacity = Math.max(0.4, item.size / 20);
+                span.onclick = () => window.location.href = `/search?q=${item.text}`;
+                cloudContainer.appendChild(span);
+            });
+        } catch (e) {
+            console.error('Wordcloud load error:', e);
+        }
     }
 
     loadInsights();

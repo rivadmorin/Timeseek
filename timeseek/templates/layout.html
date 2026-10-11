@@ -4,10 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Timeseek</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/m3-tokens.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/inter.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/material-symbols.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+  <link rel="stylesheet" href="/static/css/m3-tokens.css">
+  <link rel="stylesheet" href="/static/css/inter.css">
+  <link rel="stylesheet" href="/static/css/material-symbols.css">
+  <link rel="stylesheet" href="/static/css/custom.css">
   <style>
     body {
       margin: 0;
@@ -140,17 +140,21 @@
 </head>
 <body>
   <nav class="nav-rail">
-    <a href="/dashboard" class="nav-item {{ 'active' if request.path == '/dashboard' or request.path == '/' }}">
+    <a href="/dashboard" class="nav-item {{ 'active' if request and (request.path == '/dashboard' or request.path == '/') }}" title="Home Dashboard">
       <span class="material-symbols-rounded">dashboard</span>
       <span class="label">Home</span>
     </a>
-    <a href="/search" class="nav-item {{ 'active' if request.path == '/search' }}">
+    <a href="/search" class="nav-item {{ 'active' if request and request.path == '/search' }}" title="Search Recall">
       <span class="material-symbols-rounded">search</span>
       <span class="label">Search</span>
     </a>
-    <a href="/timeline" class="nav-item {{ 'active' if request.path == '/timeline' }}">
+    <a href="/timeline" class="nav-item {{ 'active' if request and request.path == '/timeline' }}" title="Timeline Scrubbing">
       <span class="material-symbols-rounded">timeline</span>
       <span class="label">Timeline</span>
+    </a>
+    <a href="/settings" class="nav-item {{ 'active' if request and request.path == '/settings' }}" title="Settings & Preferences">
+      <span class="material-symbols-rounded">settings</span>
+      <span class="label">Settings</span>
     </a>
 
     <div class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
@@ -160,16 +164,26 @@
 
   <main>
     <header>
-      {% if request.path == '/search' %}
+      {% if request and request.path == '/search' %}
       <div class="search-container">
         <form action="/search" method="get">
           <span class="material-symbols-rounded search-icon">search</span>
-          <input type="text" name="q" class="search-input" placeholder="Search your recall..." value="{{ request.args.get('q', '') }}" autocomplete="off">
+          <input type="text" name="q" class="search-input" placeholder="Search your recall..." value="{{ request.args.get('q', '') if request and request.args else '' }}" autocomplete="off">
         </form>
       </div>
       {% else %}
       <div style="font-size: 24px; font-weight: 500; flex: 1; text-align: center;">
-          {% if request.path == '/dashboard' or request.path == '/' %} Daily Dashboard {% elif request.path == '/timeline' %} Timeline Viewer {% endif %}
+          {% if request and (request.path == '/dashboard' or request.path == '/') %}
+            Daily Dashboard
+          {% elif request and request.path == '/timeline' %}
+            Timeline Viewer
+          {% elif request and request.path == '/settings' %}
+            Settings & Controls
+          {% elif request and request.path and request.path.startswith('/snapshot') %}
+            Snapshot Details
+          {% else %}
+            Timeseek Memory
+          {% endif %}
       </div>
       {% endif %}
     </header>

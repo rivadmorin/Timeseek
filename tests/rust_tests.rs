@@ -145,3 +145,101 @@ fn test_settings_and_favorite_behavior() {
     state.set_recording_paused(true);
     assert!(state.is_recording_paused());
 }
+
+#[tokio::test]
+async fn test_web_routes_rendering() {
+    use axum::body::Body;
+    use axum::http::{Request, StatusCode};
+    use minijinja::Environment;
+    use std::sync::Arc;
+    use tower::ServiceExt;
+    use timeseek::ml::VectorEmbeddingEngine;
+    use timeseek::web::{create_router, AppContext};
+
+    let tmp_file = NamedTempFile::new().unwrap();
+    let db = Arc::new(Database::new(tmp_file.path().to_str().unwrap()).unwrap());
+
+    let entry = NewEntry {
+        text: "Test Snapshot Text",
+        timestamp: 1700000000,
+        embedding: &[],
+        app: "Browser",
+        title: "Test Page",
+        filename: "test.jpg",
+        notes: "Test note",
+        is_favorite: false,
+    };
+    let id = db.insert_entry(entry).unwrap().unwrap();
+
+    let cache = EntryCache::new();
+    for e in db.get_all_entries().unwrap() {
+        cache.add(e);
+    }
+
+    let state = Arc::new(AppState::new());
+
+    let mut jinja_env = Environment::new();
+    jinja_env.add_filter("timestamp_to_human_readable", |ts: i64| -> String {
+        ts.to_string()
+    });
+    jinja_env.add_filter("human_readable_time", |sec: u64| -> String {
+        format!("{}s", sec)
+    });
+    jinja_env.add_filter("get_app_category", |_app: String| -> String {
+        "General".to_string()
+    });
+
+    let templates_dir = std::path::Path::new("timeseek/templates");
+    if templates_dir.exists() {
+        for entry in std::fs::read_dir(templates_dir).unwrap() {
+            let entry = entry.unwrap();
+            let path = entry.path();
+            if path.is_file() {
+                if let Some(name) = path.file_name().and_then(|s| s.to_str()) {
+                    if let Ok(content) = std::fs::read_to_string(&path) {
+                        let _ = jinja_env.add_template_owned(name.to_string(), content);
+                    }
+                }
+            }
+        }
+    }
+
+    let ml_engine = Arc::new(VectorEmbeddingEngine::new());
+    let dir = tempdir().unwrap();
+
+    let ctx = AppContext {
+        db,
+        cache,
+        state,
+        jinja_env: Arc::new(jinja_env),
+        ml_engine,
+        screenshots_dir: dir.path().to_str().unwrap().to_string(),
+    };
+
+    let app = create_router(ctx);
+
+    // Test GET /
+    let response = app
+        .clone()
+        .oneshot(Request::builder().uri("/").body(Body::empty()).unwrap())
+        .await
+        .unwrap();
+    assert_eq!(response.status(), StatusCode::OK);
+
+    // Test GET /settings
+    let response = app
+        .clone()
+        .oneshot(Request::builder().uri("/settings").body(Body::empty()).unwrap())
+        .await
+        .unwrap();
+    assert_eq!(response.status(), StatusCode::OK);
+
+    // Test GET /snapshot/:id
+    let uri = format!("/snapshot/{}", id);
+    let response = app
+        .clone()
+        .oneshot(Request::builder().uri(&uri).body(Body::empty()).unwrap())
+        .await
+        .unwrap();
+    assert_eq!(response.status(), StatusCode::OK);
+}
