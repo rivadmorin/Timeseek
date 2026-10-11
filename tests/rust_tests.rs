@@ -111,3 +111,37 @@ fn test_cosine_similarity() {
     let sim_orthogonal = cosine_similarity(&v1, &v3);
     assert!((sim_orthogonal - 0.0).abs() < 1e-5);
 }
+
+#[test]
+fn test_settings_and_favorite_behavior() {
+    let tmp_file = NamedTempFile::new().unwrap();
+    let db_path = tmp_file.path().to_str().unwrap();
+    let db = Database::new(db_path).unwrap();
+
+    let new_entry = NewEntry {
+        text: "Testing settings and favorite flow",
+        timestamp: 1700000000,
+        embedding: &[],
+        app: "Terminal",
+        title: "Bash",
+        filename: "test.jpg",
+        notes: "",
+        is_favorite: false,
+    };
+
+    let id = db.insert_entry(new_entry).unwrap().unwrap();
+    let cache = EntryCache::new();
+    let entries = db.get_all_entries().unwrap();
+    for entry in entries {
+        cache.add(entry);
+    }
+
+    assert_eq!(cache.get_all()[0].is_favorite, false);
+    db.toggle_favorite(id).unwrap();
+    cache.toggle_favorite(id);
+    assert_eq!(cache.get_all()[0].is_favorite, true);
+
+    let state = AppState::new();
+    state.set_recording_paused(true);
+    assert!(state.is_recording_paused());
+}

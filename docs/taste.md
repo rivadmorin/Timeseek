@@ -152,3 +152,14 @@ tests/test_utils.py ........                                             [100%]
 - **Learning:** Utilizing local inter.css and material-symbols.css guarantees 100% offline rendering. Mapping UI colors to CSS tokens (`var(--md-sys-color-primary-container)`) ensures seamless theme adaptability.
 - **Action/Rule:** Always link local font stylesheets and use semantic M3 token variables for UI components.
 - **Verify Command:** `PYTHONPATH=. pytest tests/`
+
+## 11-10-2026 - Material Design 3 Settings Page & Favorite Toggle UI Integration
+- **Tags:** #taste #material #frontend #m3 #settings #favorite
+- **Level:** 🟢 INFO
+- **Scope:** [timeseek/templates/settings.html](file:///app/timeseek/templates/settings.html), [timeseek/templates/layout.html](file:///app/timeseek/templates/layout.html), [timeseek/templates/timeline.html](file:///app/timeseek/templates/timeline.html), [timeseek/templates/search.html](file:///app/timeseek/templates/search.html)
+- **Notify Agents:** @Taste @Material @Builder
+- **Symptom:** Missing explicit Settings page interface for screen recording toggling and missing interactive favorite toggles on timeline and search views.
+- **Root Cause:** Settings route returned template without UI implementation; timeline and search lacked real-time favorite toggle integration.
+- **Learning:** Using standard M3 switch controls with status badges and star icons with CSS state indicators provides immediate visual feedback for local-first operations.
+- **Action/Rule:** Always bind asynchronous fetch calls with immediate local DOM state toggling to keep local-first UI responsive.
+- **Verify Command:** `cargo test`
