@@ -189,6 +189,9 @@
                 </div>
             </div>
             <div class="header-actions">
+                <div class="action-btn" id="favBtn" onclick="toggleCurrentFavorite()" title="Toggle Favorite">
+                    <span class="material-symbols-rounded" id="favIcon">{% if entries[0].is_favorite %}star{% else %}star_outline{% endif %}</span>
+                </div>
                 <div class="action-btn" onclick="copyCurrentText()" title="Copy OCR Text">
                     <span class="material-symbols-rounded">content_copy</span>
                 </div>
@@ -231,6 +234,18 @@
     const winTitleLabel = document.getElementById('winTitle');
     const noteField = document.getElementById('noteField');
 
+    function updateFavoriteUI(isFav) {
+        const favBtn = document.getElementById('favBtn');
+        const favIcon = document.getElementById('favIcon');
+        if (isFav) {
+            favBtn.style.color = '#f59e0b';
+            favIcon.textContent = 'star';
+        } else {
+            favBtn.style.color = 'white';
+            favIcon.textContent = 'star_outline';
+        }
+    }
+
     slider.addEventListener('input', function() {
         const index = parseInt(slider.value);
         const item = data[index];
@@ -239,10 +254,13 @@
         sliderValue.textContent = date.toLocaleString();
         timestampImage.src = `/static/${item.filename}`;
         appNameLabel.textContent = item.app;
-        document.getElementById("appCategory").textContent = item.category;
+        if (document.getElementById("appCategory")) {
+            document.getElementById("appCategory").textContent = item.category || 'General';
+        }
         winTitleLabel.textContent = item.title;
         noteField.value = item.notes;
         document.getElementById("exportBtn").href = `/export/pdf/${item.id}`;
+        updateFavoriteUI(item.is_favorite);
     });
 
     noteField.addEventListener('blur', async function() {
@@ -260,14 +278,31 @@
             });
             if (response.ok) {
                 item.notes = newNotes; // Update local data
-                console.log('Notes updated');
-            } else {
-                console.error('Failed to update notes');
             }
         } catch (error) {
             console.error('Error updating notes:', error);
         }
     });
+
+    async function toggleCurrentFavorite() {
+        const index = parseInt(slider.value);
+        const item = data[index];
+        const newStatus = !item.is_favorite;
+
+        try {
+            const response = await fetch(`/api/entries/${item.id}/favorite`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ is_favorite: newStatus })
+            });
+            if (response.ok) {
+                item.is_favorite = newStatus;
+                updateFavoriteUI(newStatus);
+            }
+        } catch (error) {
+            console.error('Error toggling favorite:', error);
+        }
+    }
 
     function copyCurrentText() {
         const index = parseInt(slider.value);
@@ -302,6 +337,29 @@
             console.error('Error deleting entry:', error);
             alert('Error deleting entry');
         }
+    }
+
+    // Keyboard Arrow navigation for Timeline Scrubbing
+    document.addEventListener('keydown', function(e) {
+        if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
+        if (e.key === 'ArrowLeft') {
+            const val = parseInt(slider.value);
+            if (val > 0) {
+                slider.value = val - 1;
+                slider.dispatchEvent(new Event('input'));
+            }
+        } else if (e.key === 'ArrowRight') {
+            const val = parseInt(slider.value);
+            if (val < parseInt(slider.max)) {
+                slider.value = val + 1;
+                slider.dispatchEvent(new Event('input'));
+            }
+        }
+    });
+
+    // Initial favorite UI check
+    if (data.length > 0) {
+        updateFavoriteUI(data[0].is_favorite);
     }
 </script>
 {% else %}

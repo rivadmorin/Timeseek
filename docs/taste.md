@@ -163,3 +163,14 @@ tests/test_utils.py ........                                             [100%]
 - **Learning:** Using standard M3 switch controls with status badges and star icons with CSS state indicators provides immediate visual feedback for local-first operations.
 - **Action/Rule:** Always bind asynchronous fetch calls with immediate local DOM state toggling to keep local-first UI responsive.
 - **Verify Command:** `cargo test`
+
+## 11-10-2026 - M3 UI Complete Navigation & Snapshot Detail View Enhancement
+- **Tags:** #taste #material #frontend #m3 #ui #keyboard #snapshot
+- **Level:** 🟢 INFO
+- **Scope:** [timeseek/templates/settings.html](file:///app/timeseek/templates/settings.html), [timeseek/templates/snapshot.html](file:///app/timeseek/templates/snapshot.html), [timeseek/templates/layout.html](file:///app/timeseek/templates/layout.html), [timeseek/templates/timeline.html](file:///app/timeseek/templates/timeline.html), [timeseek/templates/dashboard.html](file:///app/timeseek/templates/dashboard.html), [timeseek/templates/search.html](file:///app/timeseek/templates/search.html)
+- **Notify Agents:** @Taste @Material @Orchestrator
+- **Symptom:** `/settings` and `/snapshot/:id` routes resulted in template errors when accessed; timeline lacked keyboard arrow scrubbing and star favorite actions; search modal lacked permalink and PDF export buttons.
+- **Root Cause:** Missing `settings.html` and `snapshot.html` template implementations and missing keyboard event handlers in timeline viewer.
+- **Learning:** Providing full M3 switch components, real-time status banners, keyboard arrow scrubbing (`←` / `→`), and permalinks significantly elevates application ergonomics and usability.
+- **Action/Rule:** Ensure every defined route has a matching, responsive M3 template and key interactive views support keyboard navigation shortcuts.
+- **Verify Command:** `cargo test`

@@ -1,0 +1,274 @@
+{% extends "layout.html" %}
+{% block content %}
+<style>
+    .settings-container {
+        max-width: 800px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    .settings-card {
+        background-color: var(--md-sys-color-surface-container-low);
+        border: 1px solid var(--md-sys-color-outline-variant);
+        border-radius: var(--md-sys-shape-corner-extra-large);
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .card-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 20px;
+        font-weight: 600;
+        color: var(--md-sys-color-on-surface);
+    }
+
+    .setting-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px;
+        background-color: var(--md-sys-color-surface-container);
+        border-radius: var(--md-sys-shape-corner-large);
+        gap: 16px;
+    }
+
+    .setting-info {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .setting-title {
+        font-weight: 600;
+        font-size: 15px;
+        color: var(--md-sys-color-on-surface);
+    }
+
+    .setting-desc {
+        font-size: 13px;
+        color: var(--md-sys-color-on-surface-variant);
+    }
+
+    /* M3 Switch Component */
+    .m3-switch {
+        position: relative;
+        display: inline-block;
+        width: 52px;
+        height: 32px;
+        flex-shrink: 0;
+    }
+
+    .m3-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .switch-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background-color: var(--md-sys-color-surface-container-highest);
+        border: 2px solid var(--md-sys-color-outline);
+        border-radius: 32px;
+        transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .switch-slider:before {
+        position: absolute;
+        content: "";
+        height: 16px;
+        width: 16px;
+        left: 6px;
+        bottom: 6px;
+        background-color: var(--md-sys-color-outline);
+        border-radius: 50%;
+        transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    input:checked + .switch-slider {
+        background-color: var(--md-sys-color-primary);
+        border-color: var(--md-sys-color-primary);
+    }
+
+    input:checked + .switch-slider:before {
+        transform: translateX(20px);
+        background-color: var(--md-sys-color-on-primary);
+        height: 20px;
+        width: 20px;
+        left: 4px;
+        bottom: 4px;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 12px;
+        border-radius: var(--md-sys-shape-corner-full);
+        font-size: 13px;
+        font-weight: 500;
+    }
+
+    .status-badge.active {
+        background-color: var(--md-sys-color-primary-container);
+        color: var(--md-sys-color-on-primary-container);
+    }
+
+    .status-badge.paused {
+        background-color: var(--md-sys-color-error-container);
+        color: var(--md-sys-color-on-error-container);
+    }
+
+    .shortcut-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .shortcut-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 14px;
+        padding: 8px 0;
+        border-bottom: 1px dashed var(--md-sys-color-outline-variant);
+    }
+
+    .kbd {
+        background-color: var(--md-sys-color-surface-container-highest);
+        border: 1px solid var(--md-sys-color-outline-variant);
+        border-radius: 4px;
+        padding: 2px 8px;
+        font-family: monospace;
+        font-size: 12px;
+        color: var(--md-sys-color-primary);
+    }
+</style>
+
+<div class="settings-container">
+    <!-- Recording Settings -->
+    <div class="settings-card">
+        <div class="card-header">
+            <span class="material-symbols-rounded">videocam</span>
+            Screen Recording Control
+        </div>
+
+        <div class="setting-item">
+            <div class="setting-info">
+                <div class="setting-title">Pause Screen Capture</div>
+                <div class="setting-desc">Temporarily halt background screen snapshots and OCR text indexing.</div>
+            </div>
+            <label class="m3-switch">
+                <input type="checkbox" id="pauseSwitch" {% if is_paused %}checked{% endif %} onchange="toggleRecordingPause(this.checked)">
+                <span class="switch-slider"></span>
+            </label>
+        </div>
+
+        <div class="setting-item">
+            <div class="setting-info">
+                <div class="setting-title">Current Recording Status</div>
+                <div class="setting-desc">Live operational state of the local capture daemon.</div>
+            </div>
+            <div id="statusBadge" class="status-badge {% if is_paused %}paused{% else %}active{% endif %}">
+                <span class="material-symbols-rounded" style="font-size: 16px;">
+                    {% if is_paused %}pause_circle{% else %}play_circle{% endif %}
+                </span>
+                <span id="statusText">{% if is_paused %}Paused{% else %}Active Recording{% endif %}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Information & Shortcuts -->
+    <div class="settings-card">
+        <div class="card-header">
+            <span class="material-symbols-rounded">keyboard</span>
+            Shortcuts & Navigation
+        </div>
+
+        <div class="shortcut-list">
+            <div class="shortcut-row">
+                <span>Navigate Timeline Snapshots</span>
+                <div><span class="kbd">←</span> <span class="kbd">→</span> (Left / Right Arrow)</div>
+            </div>
+            <div class="shortcut-row">
+                <span>Copy OCR Text</span>
+                <span class="kbd">Click Copy Button</span>
+            </div>
+            <div class="shortcut-row">
+                <span>Toggle Light / Dark Mode</span>
+                <span class="kbd">Theme Button (Nav Rail)</span>
+            </div>
+            <div class="shortcut-row">
+                <span>Export Snapshot PDF</span>
+                <span class="kbd">PDF Icon in Header/Modal</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Local Data & Privacy -->
+    <div class="settings-card">
+        <div class="card-header">
+            <span class="material-symbols-rounded">security</span>
+            Privacy & Local Storage
+        </div>
+
+        <div class="setting-item">
+            <div class="setting-info">
+                <div class="setting-title">100% Local Processing</div>
+                <div class="setting-desc">All screenshots, vector embeddings, and OCR texts remain strictly on your machine.</div>
+            </div>
+            <span class="material-symbols-rounded" style="color: var(--md-sys-color-primary);">verified_user</span>
+        </div>
+
+        <div class="setting-item">
+            <div class="setting-info">
+                <div class="setting-title">Data Management</div>
+                <div class="setting-desc">Purge or bulk delete past data directly from the Daily Dashboard.</div>
+            </div>
+            <a href="/dashboard" class="status-badge active" style="text-decoration: none;">Go to Dashboard</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function toggleRecordingPause(paused) {
+        const badge = document.getElementById('statusBadge');
+        const text = document.getElementById('statusText');
+        const icon = badge.querySelector('.material-symbols-rounded');
+
+        try {
+            const response = await fetch('/api/settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ recording_paused: paused })
+            });
+
+            if (response.ok) {
+                if (paused) {
+                    badge.className = 'status-badge paused';
+                    text.textContent = 'Paused';
+                    icon.textContent = 'pause_circle';
+                } else {
+                    badge.className = 'status-badge active';
+                    text.textContent = 'Active Recording';
+                    icon.textContent = 'play_circle';
+                }
+            } else {
+                alert('Failed to update settings');
+                document.getElementById('pauseSwitch').checked = !paused;
+            }
+        } catch (err) {
+            console.error('Error toggling recording state:', err);
+            alert('Connection error updating settings');
+            document.getElementById('pauseSwitch').checked = !paused;
+        }
+    }
+</script>
+{% endblock %}
